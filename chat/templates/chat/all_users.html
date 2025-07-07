@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>All Users</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f2f5;
+      margin: 0;
+      padding: 20px;
+    }
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+    .user-card {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .user-card img {
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      margin-right: 15px;
+    }
+    .user-info {
+      display: flex;
+      align-items: center;
+    }
+    .user-name {
+      font-size: 16px;
+      color: #333;
+    }
+    .friend-status {
+      font-size: 14px;
+      font-weight: bold;
+    }
+    .friend-status.friend {
+      color: green;
+    }
+    .friend-status.requested {
+      color: orange;
+    }
+    .add-button {
+      background: #25D366;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 4px;
+      text-decoration: none;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <h2>All Users</h2>
+
+  {% for user in users %}
+    <div class="user-card">
+      <div class="user-info">
+        <img src="https://via.placeholder.com/40" alt="Profile">
+        <span class="user-name">{{ user.username }}</span>
+      </div>
+
+      {% if user.id in friend_ids %}
+        <span class="friend-status friend">Friend</span>
+      {% elif user.id in sent_request_ids %}
+        <span class="friend-status requested">Requested</span>
+      {% else %}
+        <a href="{% url 'send_friend_request' user.id %}" class="add-button">Add Friend</a>
+      {% endif %}
+    </div>
+  {% empty %}
+    <p>No other users found.</p>
+  {% endfor %}
+
+</body>
+</html>

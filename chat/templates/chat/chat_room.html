@@ -1,0 +1,468 @@
+{% load chat_extras %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Chat UI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      height: 100vh;
+      background: #f0f2f5;
+    }
+
+    .sidebar {
+      width: 25%;
+      background: #fff;
+      border-right: 1px solid #e0e0e0;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    .sidebar-header {
+      padding: 16px 20px;
+      background: #25D366;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .header-left i {
+      font-size: 22px;
+      color: white;
+    }
+
+    .header-left span {
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .header-icons {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .notification-friend {
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      padding: 5px;
+      position: relative;
+    }
+
+    .notification-friend a {
+      text-decoration: none;
+      color: white;
+    }
+
+    #alert-badge {
+      position: absolute;
+      top: -3px;
+      right: -3px;
+      background: red;
+      color: white;
+      font-size: 11px;
+      padding: 2px 5px;
+      border-radius: 50%;
+      display: none;
+    }
+
+    .menu-button {
+      background: none;
+      border: none;
+      font-size: 22px;
+      color: white;
+      cursor: pointer;
+      padding: 4px;
+    }
+
+    .dropdown {
+      display: none;
+      position: absolute;
+      top: 60px;
+      left: 10px;
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      min-width: 150px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      z-index: 1000;
+    }
+
+    .dropdown a {
+      display: block;
+      padding: 12px 16px;
+      text-decoration: none;
+      color: #333;
+      border-bottom: 1px solid #eee;
+    }
+
+    .user-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      text-decoration: none;
+      color: #333;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .user-link img {
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .user-name {
+      flex: 1;
+    }
+
+    .notification-badge {
+      background: red;
+      color: white;
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 50%;
+      display: inline-block;
+      min-width: 16px;
+      text-align: center;
+    }
+
+    .active-chat {
+      background: #e6f4ea;
+    }
+
+    .chat-window {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .top-bar {
+      background: white;
+      padding: 15px 20px;
+      font-size: 18px;
+      font-weight: bold;
+      border-bottom: 1px solid #ddd;
+    }
+
+    #chat-log {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      background: #f0f2f5;
+    }
+
+    .message-row {
+      max-width: 60%;
+      padding: 10px 15px;
+      border-radius: 12px;
+      position: relative;
+    }
+
+    .sent {
+      align-self: flex-end;
+      background-color: #dcf8c6;
+      border-bottom-right-radius: 0;
+    }
+
+    .received {
+      align-self: flex-start;
+      background-color: #fff;
+      border-bottom-left-radius: 0;
+    }
+
+    .meta {
+      font-size: 11px;
+      color: #888;
+      margin-top: 5px;
+      text-align: right;
+    }
+
+    .input-area {
+      display: flex;
+      padding: 15px 20px;
+      border-top: 1px solid #ddd;
+      background: white;
+    }
+
+    #msg-input {
+      flex: 1;
+      border: 1px solid #ccc;
+      border-radius: 20px;
+      padding: 10px 15px;
+    }
+
+    button[type="submit"] {
+      background: #25D366;
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 20px;
+      margin-left: 10px;
+      cursor: pointer;
+    }
+
+    .notification-wrapper {
+      position: relative;
+      display: inline-block;
+      color: white;
+      font-size: 20px;
+      text-decoration: none;
+    }
+
+    .badge {
+      position: absolute;
+      top: -5px;
+      right: -10px;
+      background: red;
+      color: white;
+      font-size: 12px;
+      padding: 2px 6px;
+      border-radius: 50%;
+      min-width: 18px;
+      text-align: center;
+      font-weight: bold;
+      line-height: 1;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="header-left">
+        <span>Chats</span>
+      </div>
+      <div class="header-icons">
+        <a href="{% url 'notifications' %}" class="notification-wrapper">
+          <i class="fa-solid fa-heart"></i>
+          {% if friend_request_count > 0 %}
+          <span class="badge">{{ friend_request_count }}</span>
+          {% endif %}
+        </a>
+        <button class="menu-button" onclick="toggleMenu()">☰</button>
+      </div>
+    </div>
+
+    <div id="dropdownMenu" class="dropdown">
+      <a href="{% url 'profile' %}">👤 Profile</a>
+      <a href="{% url 'all_users' %}">📋 All Users</a>
+      <a href="{% url 'logout' %}?next=/login/">🚪 Logout</a>
+      <a href="{% url 'notifications' %}">🔔 Friend Requests</a>
+    </div>
+
+    {% for user in users %}
+    <a href="{% url 'chat_room' user.id %}"
+       class="user-link {% if selected_user and user.id == selected_user.id %}active-chat{% endif %}"
+       data-user-id="{{ user.id }}">
+      {% if user.profile.picture %}
+        <img src="{{ user.profile.picture.url }}" alt="{{ user.username }}">
+      {% else %}
+        <img src="{% static 'default_profile.png' %}" alt="Default">
+      {% endif %}
+      <span class="user-name">{{ user.username }}</span>
+
+      {% with unread=messages_unread|get_item:user.id %}
+        <span id="notify-{{ user.id }}" class="notification-badge" {% if unread == 0 %}style="display: none;"{% endif %}>
+          {% if unread > 0 %}{{ unread }}{% endif %}
+        </span>
+      {% endwith %}
+    </a>
+    {% endfor %}
+  </div>
+
+  <div class="chat-window">
+    {% if selected_user %}
+    <div class="top-bar">Chat with {{ selected_user.username }}</div>
+    <div id="chat-log">
+      {% for msg in messages %}
+      <div class="message-row {% if msg.sender.id == request.user.id %}sent{% else %}received{% endif %}">
+        <div>{{ msg.content|linebreaksbr }}</div>
+        <div class="meta">{{ msg.timestamp|date:"M d, H:i" }}</div>
+      </div>
+      {% empty %}
+      <p style="text-align: center;">No messages yet.</p>
+      {% endfor %}
+    </div>
+    <form method="POST" class="input-area" id="message-form">
+      {% csrf_token %}
+      <input type="text" name="message" id="msg-input" placeholder="Type a message..." autocomplete="off" required>
+      <button type="submit">Send</button>
+    </form>
+    {% else %}
+    <div class="top-bar">Select a user to chat</div>
+    <div style="padding: 20px; text-align: center;">Click on a user to start chatting.</div>
+    {% endif %}
+  </div>
+
+  <script>
+    function toggleMenu() {
+      const menu = document.getElementById("dropdownMenu");
+      menu.style.display = (menu.style.display === "block") ? "none" : "block";
+    }
+
+    document.addEventListener("click", function (e) {
+      const menu = document.getElementById("dropdownMenu");
+      const button = document.querySelector(".menu-button");
+      if (!menu.contains(e.target) && !button.contains(e.target)) {
+        menu.style.display = "none";
+      }
+    });
+
+    {% if selected_user %}
+    const currentUserId = {{ request.user.id }};
+    const chattingWithId = {{ selected_user.id }};
+    let socket;
+
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.appendChild(document.createTextNode(text));
+      return div.innerHTML;
+    }
+
+    function connectWebSocket() {
+      socket = new WebSocket(
+        (window.location.protocol === "https:" ? "wss://" : "ws://") +
+        window.location.host + "/ws/chat/" + chattingWithId + "/"
+      );
+
+      socket.onopen = () => console.log("✅ Chat socket connected");
+
+      socket.onclose = () => {
+        console.warn("❌ Chat socket disconnected. Reconnecting...");
+        setTimeout(connectWebSocket, 3000);
+      };
+
+      socket.onmessage = (e) => {
+        const data = JSON.parse(e.data);
+        const isOwn = data.sender_id === currentUserId;
+        const isActiveChat = chattingWithId === data.sender_id;
+
+        if (isOwn || isActiveChat) {
+          appendMessage(data, isOwn);
+        }
+      };
+    }
+
+    function connectNotificationSocket() {
+      const notifySocket = new WebSocket(
+        (window.location.protocol === "https:" ? "wss://" : "ws://") +
+        window.location.host + "/ws/notifications/"
+      );
+
+      notifySocket.onopen = () => console.log("🔔 Notification socket connected");
+
+      notifySocket.onclose = () => {
+        setTimeout(connectNotificationSocket, 3000);
+      };
+
+      notifySocket.onmessage = (e) => {
+        const data = JSON.parse(e.data);
+
+        if (data.receiver_id === currentUserId && data.sender_id !== chattingWithId) {
+          const badge = document.getElementById(`notify-${data.sender_id}`);
+          if (badge) {
+            let count = parseInt(badge.textContent || "0");
+            count = isNaN(count) ? 1 : count + 1;
+            badge.textContent = count;
+            badge.style.display = "inline-block";
+          }
+
+          if (Notification.permission === "granted") {
+            new Notification(`New message from ${data.sender_username}`, {
+              body: data.message,
+              icon: "https://cdn-icons-png.flaticon.com/512/2111/2111615.png"
+            });
+          }
+        }
+      };
+    }
+
+    function connectAlertSocket() {
+      const alertSocket = new WebSocket(
+        (window.location.protocol === "https:" ? "wss://" : "ws://") +
+        window.location.host + "/ws/alerts/"
+      );
+
+      alertSocket.onmessage = (e) => {
+        const badge = document.getElementById("alert-badge");
+        if (badge) badge.style.display = "inline-block";
+      };
+
+      alertSocket.onclose = () => {
+        setTimeout(connectAlertSocket, 3000);
+      };
+    }
+
+    function appendMessage(data, isOwn) {
+      const chatLog = document.getElementById("chat-log");
+      const row = document.createElement("div");
+      row.className = "message-row " + (isOwn ? "sent" : "received");
+
+      row.innerHTML = `
+        <div><strong>${escapeHtml(data.sender_username)}</strong>: ${escapeHtml(data.message)}</div>
+        <div class="meta">${data.timestamp}</div>
+      `;
+
+      chatLog.appendChild(row);
+      chatLog.scrollTop = chatLog.scrollHeight;
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      connectWebSocket();
+      connectNotificationSocket();
+      connectAlertSocket();
+
+      if (Notification.permission !== "granted") {
+        Notification.requestPermission();
+      }
+
+      document.querySelectorAll('.user-link').forEach(link => {
+        link.addEventListener('click', () => {
+          const userId = link.getAttribute('data-user-id');
+          const badge = document.getElementById(`notify-${userId}`);
+          if (badge) {
+            badge.textContent = '';
+            badge.style.display = 'none';
+          }
+        });
+      });
+
+      document.getElementById("message-form").addEventListener("submit", function (e) {
+        e.preventDefault();
+        const input = document.getElementById("msg-input");
+        const message = input.value.trim();
+        if (message && socket.readyState === WebSocket.OPEN) {
+          socket.send(JSON.stringify({ message }));
+          input.value = "";
+        }
+      });
+    });
+    {% endif %}
+  </script>
+</body>
+</html>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Friend Requests</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f2f5;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h2 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 30px;
+    }
+
+    .user-card {
+      background: white;
+      padding: 15px 20px;
+      border-radius: 10px;
+      margin: 0 auto 15px;
+      width: 100%;
+      max-width: 500px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.07);
+      transition: transform 0.2s ease;
+    }
+
+    .user-card:hover {
+      transform: translateY(-2px);
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .user-info img {
+      border-radius: 50%;
+      width: 45px;
+      height: 45px;
+      object-fit: cover;
+      background: #ddd;
+    }
+
+    .user-info span {
+      font-size: 16px;
+      font-weight: 500;
+      color: #333;
+    }
+
+    .accept-button {
+      background: #25D366;
+      color: white;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .accept-button:hover {
+      background: #1ba857;
+    }
+
+    .no-requests {
+      text-align: center;
+      color: #888;
+      font-size: 16px;
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Friend Requests</h2>
+
+  {% for req in requests %}
+    <div class="user-card">
+      <div class="user-info">
+        <img src="https://via.placeholder.com/40" alt="Profile">
+        <span>{{ req.from_user.username }}</span>
+      </div>
+      <a href="{% url 'accept_request' req.id %}" class="accept-button">Accept</a>
+    </div>
+  {% empty %}
+    <p class="no-requests">No pending requests.</p>
+  {% endfor %}
+
+  <script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const dot = document.getElementById("heart-dot");
+    if (dot) dot.style.display = "none";
+  });
+</script>
+
+
+</body>
+</html>

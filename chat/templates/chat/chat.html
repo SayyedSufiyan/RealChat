@@ -1,0 +1,392 @@
+{% load static %}
+{% load chat_extras %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Chat UI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      height: 100vh;
+      background: #f0f2f5;
+    }
+
+    /* === TOP MENU STYLES === */
+    .top-menu {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 9999;
+    }
+
+    .menu-icon {
+      width: 35px;
+      height: 30px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 5px;
+    }
+
+    .menu-icon div {
+      height: 4px;
+      background-color: #333;
+      border-radius: 2px;
+    }
+
+    .dropdown {
+      display: none;
+      position: absolute;
+      top: 40px;
+      left: 0;
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      min-width: 140px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .dropdown a {
+      display: block;
+      padding: 10px;
+      text-decoration: none;
+      color: #333;
+      border-bottom: 1px solid #eee;
+    }
+
+    .dropdown a:last-child {
+      border-bottom: none;
+    }
+
+    .dropdown a:hover {
+      background: #f5f5f5;
+    }
+
+    /* === SIDEBAR === */
+    .sidebar {
+      width: 25%;
+      background: #fff;
+      border-right: 1px solid #e0e0e0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar h3 {
+      padding: 20px;
+      margin: 0;
+      background: #25D366;
+      color: white;
+    }
+
+    .user-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      text-decoration: none;
+      color: #333;
+      border-bottom: 1px solid #f0f0f0;
+      transition: background 0.3s;
+    }
+
+    .user-link:hover { background: #f7f7f7; }
+
+    .user-link img {
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+    }
+
+    .user-name { flex: 1; }
+
+    .notification-badge {
+      background: red;
+      color: white;
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 50%;
+      display: none;
+    }
+
+    .active-chat { background: #e6f4ea; }
+
+    .chat-window {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .top-bar {
+      background: white;
+      padding: 15px 20px;
+      font-size: 18px;
+      font-weight: bold;
+      border-bottom: 1px solid #ddd;
+    }
+
+    #chat-log {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      background: #f0f2f5;
+    }
+
+    .message-row {
+      max-width: 60%;
+      padding: 10px 15px;
+      border-radius: 12px;
+      position: relative;
+    }
+
+    .sent {
+      align-self: flex-end;
+      background-color: #dcf8c6;
+      border-bottom-right-radius: 0;
+    }
+
+    .received {
+      align-self: flex-start;
+      background-color: #fff;
+      border-bottom-left-radius: 0;
+    }
+
+    .meta {
+      font-size: 11px;
+      color: #888;
+      margin-top: 5px;
+      text-align: right;
+    }
+
+    .input-area {
+      display: flex;
+      padding: 15px 20px;
+      border-top: 1px solid #ddd;
+      background: white;
+    }
+
+    #msg-input {
+      flex: 1;
+      border: 1px solid #ccc;
+      border-radius: 20px;
+      padding: 10px 15px;
+    }
+
+    button[type="submit"] {
+      background: #25D366;
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 20px;
+      margin-left: 10px;
+      cursor: pointer;
+    }
+      .top-right-menu {
+    position: fixed;
+    top: 10px;
+    right: 20px;
+    z-index: 999;
+  }
+
+  .menu-trigger {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+  }
+
+  .dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 35px;
+    right: 0;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 160px;
+    overflow: hidden;
+  }
+
+  .dropdown-menu a {
+    display: block;
+    padding: 12px 16px;
+    color: #333;
+    text-decoration: none;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background 0.2s ease;
+  }
+
+  .dropdown-menu a:hover {
+    background-color: #f5f5f5;
+  }
+
+  .dropdown-menu a:last-child {
+    border-bottom: none;
+  }
+  </style>
+</head>
+<body>
+
+
+<!-- ✅ Sidebar -->
+<div class="sidebar">
+  <h3>Chats</h3>
+  <div class="top-right-menu">
+    <!-- ☰ Vertical 3 dots menu -->
+    <button class="menu-trigger" onclick="toggleDropdown()">⋮</button>
+
+    <!-- Dropdown Menu -->
+    <div id="dropdownMenu" class="dropdown-menu">
+        <a href="{% url 'profile' %}">👤 Profile</a>
+        <a href="{% url 'chat_home' %}">💬 All Users</a>
+        <a href="{% url 'logout' %}">🚪 Logout</a>
+    </div>
+  </div>
+  {% for user in users %}
+    <a href="{% url 'chat_room' user.id %}" class="user-link {% if selected_user and user.id == selected_user.id %}active-chat{% endif %}" data-user-id="{{ user.id }}">
+      <img src="https://via.placeholder.com/40" alt="Profile">
+      <span class="user-name">{{ user.username }}</span>
+      <span id="notify-{{ user.id }}" class="notification-badge">0</span>
+    </a>
+  {% endfor %}
+</div>
+
+<!-- ✅ Chat Window -->
+<div class="chat-window">
+  {% if selected_user %}
+    <div class="top-bar">Chat with {{ selected_user.username }}</div>
+
+    <div id="chat-log">
+      {% for msg in messages %}
+        <div class="message-row {% if msg.sender.id == request.user.id %}sent{% else %}received{% endif %}">
+          <div><strong>{{ msg.sender.username }}</strong>: {{ msg.content|linebreaksbr }}</div>
+          <div class="meta">{{ msg.timestamp|date:"M d, H:i" }}</div>
+        </div>
+      {% empty %}
+        <p style="text-align: center;">No messages yet.</p>
+      {% endfor %}
+    </div>
+
+    <form method="POST" class="input-area" id="message-form">
+      {% csrf_token %}
+      <input type="text" name="message" id="msg-input" placeholder="Type a message..." autocomplete="off" required>
+      <button type="submit">Send</button>
+    </form>
+  {% else %}
+    <div class="top-bar">Select a user to chat</div>
+    <div style="padding: 20px; text-align: center;">Click on a user to start chatting.</div>
+  {% endif %}
+</div>
+
+<!-- ✅ Scripts -->
+{% if selected_user %}
+<script>
+  const currentUserId = {{ request.user.id }};
+  const chattingWithId = {{ selected_user.id }};
+  const socket = new WebSocket(
+    (window.location.protocol === "https:" ? "wss://" : "ws://") +
+    window.location.host + "/ws/chat/" + chattingWithId + "/"
+  );
+
+  function appendMessage(data, isOwn) {
+    const chatLog = document.getElementById("chat-log");
+    const row = document.createElement("div");
+    row.className = "message-row " + (isOwn ? "sent" : "received");
+    row.innerHTML = `
+      <div><strong>${data.sender_username}</strong>: ${data.message}</div>
+      <div class="meta">${data.timestamp}</div>
+    `;
+    chatLog.appendChild(row);
+    chatLog.scrollTop = chatLog.scrollHeight;
+  }
+
+  socket.onmessage = function (e) {
+    const data = JSON.parse(e.data);
+    const isOwn = data.sender_id === currentUserId;
+    const isActiveChat = data.sender_id == chattingWithId;
+
+    if (isOwn || isActiveChat) {
+      appendMessage(data, isOwn);
+    } else {
+      const badge = document.getElementById(`notify-${data.sender_id}`);
+      if (badge) {
+        const count = parseInt(badge.textContent || "0") + 1;
+        badge.textContent = count;
+        badge.style.display = "inline-block";
+      }
+
+      if (Notification.permission === "granted") {
+        new Notification(`💬 ${data.sender_username}`, {
+          body: data.message,
+          icon: "https://cdn-icons-png.flaticon.com/512/2111/2111615.png"
+        });
+      }
+    }
+  };
+
+  document.addEventListener("DOMContentLoaded", () => {
+    if (Notification.permission !== "granted") {
+      Notification.requestPermission();
+    }
+
+    document.querySelectorAll('.user-link').forEach(link => {
+      link.addEventListener('click', () => {
+        const userId = link.getAttribute('data-user-id');
+        const badge = document.getElementById(`notify-${userId}`);
+        if (badge) {
+          badge.textContent = '';
+          badge.style.display = 'none';
+        }
+      });
+    });
+
+    document.getElementById("message-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const input = document.getElementById("msg-input");
+      const message = input.value.trim();
+      if (message && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({ message }));
+        input.value = "";
+      }
+    });
+  });
+
+  function toggleMenu() {
+    const menu = document.getElementById("dropdown-menu");
+    menu.style.display = (menu.style.display === "block") ? "none" : "block";
+  }
+
+  document.addEventListener("click", function (event) {
+    const menu = document.getElementById("dropdown-menu");
+    const icon = document.querySelector(".menu-icon");
+    if (!icon.contains(event.target) && !menu.contains(event.target)) {
+      menu.style.display = "none";
+    }
+  });
+
+   function toggleDropdown() {
+    const menu = document.getElementById("dropdownMenu");
+    menu.style.display = menu.style.display === "block" ? "none" : "block";
+  }
+
+  // Close dropdown when clicking outside
+  document.addEventListener("click", function (e) {
+    const menu = document.getElementById("dropdownMenu");
+    const button = document.querySelector(".menu-trigger");
+    if (!menu.contains(e.target) && !button.contains(e.target)) {
+      menu.style.display = "none";
+    }
+  });
+</script>
+{% endif %}
+</body>
+</html>

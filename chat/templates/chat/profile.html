@@ -1,0 +1,158 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Your Profile</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #ff4e9b, #ff7c70);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .card {
+      background: white;
+      border-radius: 30px;
+      padding: 60px 50px;
+      width: 500px;
+      max-width: 95%;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+      text-align: center;
+      position: relative;
+    }
+
+    .profile-img {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 6px solid white;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+      position: absolute;
+      top: -75px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #eee;
+    }
+
+    .username {
+      margin-top: 90px;
+      font-size: 28px;
+      font-weight: bold;
+      color: #222;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: #666;
+      margin-top: 6px;
+    }
+
+    .description {
+      font-size: 16px;
+      color: #444;
+      margin: 20px 0 30px;
+      line-height: 1.5;
+    }
+
+    .stats {
+      display: flex;
+      justify-content: space-between;
+      margin: 25px 0;
+    }
+
+    .stat {
+      flex: 1;
+      text-align: center;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 22px;
+      color: #333;
+    }
+
+    .stat span {
+      font-size: 15px;
+      color: #888;
+    }
+
+    .btn-show-more {
+      background: #ff4081;
+      color: white;
+      padding: 14px 35px;
+      border: none;
+      border-radius: 30px;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .btn-show-more:hover {
+      background: #e73370;
+    }
+
+    .back-link {
+      display: block;
+      margin-top: 25px;
+      font-size: 16px;
+      text-decoration: none;
+      color: #666;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 500px) {
+      .card {
+        padding: 40px 25px;
+        width: 90%;
+      }
+
+      .profile-img {
+        width: 120px;
+        height: 120px;
+        top: -60px;
+      }
+
+      .username {
+        font-size: 24px;
+      }
+
+      .subtitle,
+      .description,
+      .back-link {
+        font-size: 14px;
+      }
+
+      .btn-show-more {
+        font-size: 14px;
+        padding: 12px 25px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    {% if profile.picture %}
+      <img src="{{ profile.picture.url }}" alt="Profile Picture" class="profile-img">
+    {% else %}
+      <img src="{% static 'default_profile.png' %}" alt="Profile Picture" class="profile-img">
+    {% endif %}
+
+    <div class="username">{{ user.username }}</div>
+    <div class="subtitle">{{ profile.phone }} &middot; {{ user.email }}</div>
+    <div class="description">{{ profile.name }} <br> Last seen: {{ profile.last_seen|date:"M d, Y H:i" }}</div>
+
+    <a href="{% url 'chat_home' %}" class="back-link">⬅ Back to Chat</a>
+  </div>
+
+</body>
+</html>

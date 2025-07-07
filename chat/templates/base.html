@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}My Chat App{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/your-styles.css' %}">
+  <link
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    rel="stylesheet"
+  >
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <header class="site-header">
+    <!-- your logo/nav here -->
+    <nav>
+      <a href="{% url 'all_users' %}">Chats</a>
+      <a href="{% url 'notifications' %}" class="notification-friend">
+        <i class="fa-solid fa-heart"></i>
+        <span id="alert-badge" style="display:none;">0</span>
+      </a>
+      <!-- other nav links -->
+    </nav>
+  </header>
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Alert socket (runs on every page) -->
+  <script>
+    let alertCount = 0;
+    function connectAlertSocket() {
+      const alertSocket = new WebSocket(
+        (location.protocol === 'https:' ? 'wss://' : 'ws://')
+        + window.location.host + '/ws/alerts/'
+      );
+      alertSocket.onmessage = e => {
+        const data = JSON.parse(e.data);
+        console.log("🔔 Alert:", data);
+        const badge = document.getElementById("alert-badge");
+        if (!badge) return;
+        alertCount++;
+        badge.textContent = alertCount;
+        badge.style.display = "inline-block";
+      };
+      alertSocket.onclose = () => setTimeout(connectAlertSocket, 3000);
+    }
+    document.addEventListener("DOMContentLoaded", connectAlertSocket);
+  </script>
+
+  {% block extra_js %}{% endblock %}
+</body>
+</html>
