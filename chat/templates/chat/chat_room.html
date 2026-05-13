@@ -239,7 +239,110 @@
         transform: translateY(0);
       }
     }
+  /* =========================
+   MOBILE RESPONSIVE DESIGN
+========================= */
 
+.mobile-menu-btn{
+  display:none;
+}
+
+/* Tablet */
+@media (max-width: 992px){
+
+  .sidebar{
+    width:260px;
+  }
+
+  .message-row{
+    max-width:75%;
+  }
+
+}
+
+
+/* Mobile */
+@media (max-width: 768px){
+
+  body{
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* Sidebar */
+
+  .sidebar{
+    position: fixed;
+    left: -100%;
+    top: 0;
+    width: 80%;
+    height: 100vh;
+    z-index: 999;
+    transition: 0.3s;
+  }
+
+  .sidebar.active{
+    left: 0;
+  }
+
+  /* Mobile top bar */
+
+  .top-bar{
+    padding: 12px;
+    font-size: 15px;
+  }
+
+  .mobile-menu-btn{
+    display:block;
+    background:none;
+    border:none;
+    font-size:22px;
+    cursor:pointer;
+    margin-right:10px;
+  }
+
+  .chat-window{
+    width:100%;
+    height:100vh;
+  }
+
+  #chat-log{
+    padding: 12px;
+    padding-bottom: 90px;
+  }
+
+  .message-row{
+    max-width: 85%;
+    font-size: 14px;
+    padding: 8px 12px;
+  }
+
+  .input-area{
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 10px;
+    background: white;
+    z-index: 99;
+  }
+
+  #msg-input{
+    font-size:14px;
+  }
+
+  button[type="submit"]{
+    padding:10px 14px;
+  }
+
+  .dropdown{
+    left: auto;
+    right: 10px;
+    width: 200px;
+  }
+
+}
   </style>
 </head>
 
