@@ -4,9 +4,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Chat UI</title>
+  <title>Chat Room</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
   <style>
     * { box-sizing: border-box; }
 
@@ -45,7 +46,6 @@
       position: relative;
       color: white;
       font-size: 20px;
-      text-decoration: none;
     }
 
     .badge {
@@ -57,9 +57,6 @@
       font-size: 12px;
       padding: 2px 6px;
       border-radius: 50%;
-      min-width: 18px;
-      text-align: center;
-      font-weight: bold;
     }
 
     .menu-button {
@@ -73,7 +70,6 @@
     .search-wrapper {
       padding: 10px 16px;
       border-bottom: 1px solid #ddd;
-      background-color: #fafafa;
     }
 
     #user-search {
@@ -81,7 +77,6 @@
       padding: 8px 12px;
       border: 1px solid #ccc;
       border-radius: 20px;
-      font-size: 14px;
     }
 
     .dropdown {
@@ -92,30 +87,20 @@
       background: white;
       border: 1px solid #ccc;
       border-radius: 8px;
-      min-width: 150px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
       z-index: 1000;
     }
 
     .dropdown a {
       display: block;
       padding: 12px 16px;
-      text-decoration: none;
       color: #333;
+      text-decoration: none;
       border-bottom: 1px solid #eee;
-    }
-
-    .dropdown a:last-child {
-      border-bottom: none;
     }
 
     .dropdown a:hover {
       background-color: #f9f9f9;
-    }
-
-    #user-list {
-      overflow-y: auto;
-      flex: 1;
     }
 
     .user-link {
@@ -126,11 +111,6 @@
       text-decoration: none;
       color: #333;
       gap: 12px;
-      transition: background-color 0.2s ease;
-    }
-
-    .user-link:hover {
-      background: #f5f5f5;
     }
 
     .user-link.active-chat {
@@ -142,10 +122,6 @@
       height: 40px;
       border-radius: 50%;
       object-fit: cover;
-    }
-
-    .user-name {
-      flex-grow: 1;
     }
 
     .notification-badge {
@@ -171,8 +147,8 @@
       font-weight: bold;
       border-bottom: 1px solid #ddd;
       display: flex;
+      justify-content: space-between;
       align-items: center;
-      gap: 10px;
     }
 
     #chat-log {
@@ -190,6 +166,7 @@
       padding: 10px 15px;
       border-radius: 16px;
       position: relative;
+      word-wrap: break-word;
     }
 
     .sent {
@@ -216,7 +193,6 @@
       padding: 12px 20px;
       background: white;
       border-top: 1px solid #ccc;
-      align-items: center;
       gap: 10px;
     }
 
@@ -225,6 +201,7 @@
       padding: 10px 15px;
       border-radius: 20px;
       border: 1px solid #ccc;
+      outline: none;
     }
 
     button[type="submit"] {
@@ -235,165 +212,329 @@
       border-radius: 20px;
       cursor: pointer;
     }
+
+    /* ✅ Toast Notification */
+
+    .toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #25D366;
+      color: white;
+      padding: 12px 18px;
+      border-radius: 8px;
+      z-index: 9999;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      animation: fadeIn 0.3s ease;
+      font-size: 14px;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
   </style>
 </head>
+
 <body>
 
-<div class="sidebar">
-  <div class="sidebar-header">
-    <div>Chats</div>
-    <div class="header-icons">
-      <a href="{% url 'notifications' %}" class="notification-wrapper">
-        <i class="fa-solid fa-heart"></i>
-        {% if friend_request_count > 0 %}
-        <span class="badge">{{ friend_request_count }}</span>
-        {% endif %}
-      </a>
-      <button onclick="toggleMenu()" class="menu-button">
-        <i class="fa-solid fa-bars"></i>
-      </button>
+  <div class="sidebar">
+
+    <div class="sidebar-header">
+      <div>Chats</div>
+
+      <div class="header-icons">
+
+        <a href="{% url 'notifications' %}" class="notification-wrapper">
+          <i class="fa-solid fa-bell"></i>
+
+          {% if friend_request_count > 0 %}
+            <span class="badge">{{ friend_request_count }}</span>
+          {% endif %}
+        </a>
+
+        <button class="menu-button" onclick="toggleMenu()">
+          <i class="fa fa-bars"></i>
+        </button>
+
+      </div>
     </div>
-  </div>
 
-  <div class="search-wrapper">
-    <input type="text" id="user-search" placeholder="Search users...">
-  </div>
+    <div class="search-wrapper">
+      <input type="text" id="user-search" placeholder="Search users...">
+    </div>
 
-  <div id="dropdownMenu" class="dropdown">
-    <a href="{% url 'profile' %}">👤 Profile</a>
-    <a href="{% url 'all_users' %}">📋 All Users</a>
-    <a href="{% url 'logout' %}?next=/login/">🚪 Logout</a>
-    <a href="{% url 'notifications' %}">🔔 Friend Requests</a>
-  </div>
+    <div id="dropdownMenu" class="dropdown">
+      <a href="{% url 'profile' %}">👤 Profile</a>
+      <a href="{% url 'all_users' %}">📋 All Users</a>
+      <a href="{% url 'logout' %}?next=/login/">🚪 Logout</a>
+      <a href="{% url 'notifications' %}">🔔 Friend Requests</a>
+    </div>
 
-  <div id="user-list">
-    {% for user in users %}
-    <a href="{% url 'chat_room' user.id %}"
-       class="user-link {% if selected_user and user.id == selected_user.id %}active-chat{% endif %}"
-       data-user-id="{{ user.id }}">
-      {% if user.profile.picture %}
-        <img src="{{ user.profile.picture.url }}" alt="{{ user.username }}">
-      {% else %}
-        <img src="{% static 'default_profile.png' %}" alt="Default">
-      {% endif %}
-      <span class="user-name">{{ user.username }}</span>
-      {% with unread=messages_unread|get_item:user.id %}
-        {% if unread|default:0 > 0 %}
-        <span id="notify-{{ user.id }}" class="notification-badge">{{ unread }}</span>
+    <div id="user-list">
+
+      {% for user in users %}
+      <a href="{% url 'chat_room' user.id %}"
+         class="user-link {% if selected_user and user.id == selected_user.id %}active-chat{% endif %}">
+
+        {% if user.profile.picture %}
+          <img src="{{ user.profile.picture.url }}">
         {% else %}
-        <span id="notify-{{ user.id }}" class="notification-badge" style="display:none;"></span>
+          <img src="{% static 'default_profile.png' %}">
         {% endif %}
-      {% endwith %}
-    </a>
-    {% endfor %}
-  </div>
-</div>
 
-<div class="chat-window">
-  {% if selected_user %}
-  <div class="top-bar">
-    {% if selected_user.profile.picture %}
-      <img src="{{ selected_user.profile.picture.url }}" style="width:32px;height:32px;border-radius:50%;">
-    {% else %}
-      <img src="{% static 'default_profile.png' %}" style="width:32px;height:32px;border-radius:50%;">
-    {% endif %}
-    {{ selected_user.username }}
-  </div>
+        <span class="user-name">{{ user.username }}</span>
 
-  <div id="chat-log">
-    {% for msg in messages %}
-    <div class="message-row {% if msg.sender.id == request.user.id %}sent{% else %}received{% endif %}">
-      {{ msg.content|linebreaksbr }}
-      <div class="meta">{{ msg.timestamp|date:"H:i" }}</div>
+        {% with unread=messages_unread|get_item:user.id %}
+          {% if unread|default:0 > 0 %}
+            <span class="notification-badge">{{ unread }}</span>
+          {% endif %}
+        {% endwith %}
+
+      </a>
+      {% endfor %}
+
     </div>
-    {% empty %}
-    <p style="text-align:center;">No messages yet.</p>
-    {% endfor %}
   </div>
 
-  <form method="POST" class="input-area" id="message-form">
-    {% csrf_token %}
-    <input type="text" name="message" id="msg-input" placeholder="Type a message..." required autocomplete="off">
-    <button type="submit"><i class="fa-solid fa-paper-plane"></i></button>
-  </form>
-  {% else %}
-  <div class="top-bar">Select a user to chat</div>
-  <div style="padding: 20px; text-align: center;">Click on a user to start chatting.</div>
-  {% endif %}
-</div>
+  <div class="chat-window">
+
+    {% if selected_user %}
+
+      <div class="top-bar">
+        <div>{{ selected_user.username }}</div>
+      </div>
+
+      <div id="chat-log">
+
+        {% for msg in messages %}
+          <div class="message-row {% if msg.sender.id == request.user.id %}sent{% else %}received{% endif %}">
+            {{ msg.content|linebreaksbr }}
+            <div class="meta">{{ msg.timestamp|date:"H:i" }}</div>
+          </div>
+        {% endfor %}
+
+      </div>
+
+      <form method="POST" class="input-area" id="message-form">
+
+        {% csrf_token %}
+
+        <input
+          type="text"
+          name="message"
+          id="msg-input"
+          placeholder="Type a message..."
+          required
+          autocomplete="off"
+        >
+
+        <button type="submit">
+          <i class="fa-solid fa-paper-plane"></i>
+        </button>
+
+      </form>
+
+    {% else %}
+
+      <div class="top-bar">Select a user to chat</div>
+
+      <div style="padding:20px;">
+        Click a user from the sidebar to start chatting.
+      </div>
+
+    {% endif %}
+
+  </div>
 
 <script>
+
   function toggleMenu() {
     const menu = document.getElementById("dropdownMenu");
-    menu.style.display = (menu.style.display === "block") ? "none" : "block";
+
+    menu.style.display =
+      (menu.style.display === "block") ? "none" : "block";
   }
 
   document.addEventListener("click", function (e) {
+
     const menu = document.getElementById("dropdownMenu");
     const button = document.querySelector(".menu-button");
+
     if (!menu.contains(e.target) && !button.contains(e.target)) {
       menu.style.display = "none";
     }
+
   });
 
-  // 🔍 User Filter
   document.getElementById("user-search").addEventListener("input", function () {
+
     const query = this.value.toLowerCase();
-    const userLinks = document.querySelectorAll("#user-list .user-link");
+
+    const userLinks = document.querySelectorAll(".user-link");
+
     userLinks.forEach(link => {
-      const name = link.querySelector(".user-name").textContent.toLowerCase();
-      link.style.display = name.includes(query) ? "flex" : "none";
+
+      const name = link.textContent.toLowerCase();
+
+      link.style.display =
+        name.includes(query) ? "flex" : "none";
+
     });
+
   });
 
   {% if selected_user %}
+
   const currentUserId = {{ request.user.id }};
   const chattingWithId = {{ selected_user.id }};
-  let socket;
 
-  function escapeHtml(text) {
-    const div = document.createElement("div");
-    div.appendChild(document.createTextNode(text));
-    return div.innerHTML;
+  let socket = new WebSocket(
+    (window.location.protocol === "https:" ? "wss://" : "ws://") +
+    window.location.host +
+    "/ws/chat/" +
+    chattingWithId +
+    "/"
+  );
+
+  function scrollToBottom() {
+
+    const chatLog = document.getElementById("chat-log");
+
+    chatLog.scrollTop = chatLog.scrollHeight;
+
   }
 
-  function connectWebSocket() {
-    socket = new WebSocket(
-      (window.location.protocol === "https:" ? "wss://" : "ws://") +
-      window.location.host + "/ws/chat/" + chattingWithId + "/"
-    );
+  socket.onmessage = function (e) {
 
-    socket.onopen = () => console.log("✅ Chat socket connected");
+    const data = JSON.parse(e.data);
 
-    socket.onmessage = (e) => {
-      const data = JSON.parse(e.data);
-      const isOwn = data.sender_id === currentUserId;
-      const row = document.createElement("div");
-      row.className = "message-row " + (isOwn ? "sent" : "received");
-      row.innerHTML = `<div>${escapeHtml(data.message)}</div><div class="meta">${data.timestamp}</div>`;
-      document.getElementById("chat-log").appendChild(row);
-    };
+    const isOwn =
+      data.sender_id === currentUserId;
 
-    socket.onclose = () => {
-      console.warn("❌ Disconnected. Reconnecting...");
-      setTimeout(connectWebSocket, 3000);
-    };
-  }
+    const row = document.createElement("div");
 
-  document.addEventListener("DOMContentLoaded", () => {
-    connectWebSocket();
+    row.className =
+      "message-row " +
+      (isOwn ? "sent" : "received");
 
-    document.getElementById("message-form").addEventListener("submit", function (e) {
-      e.preventDefault();
-      const input = document.getElementById("msg-input");
-      const message = input.value.trim();
-      if (message && socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({ message }));
-        input.value = "";
-      }
-    });
+    row.innerHTML = `
+      <div>${data.message}</div>
+      <div class="meta">${data.timestamp}</div>
+    `;
+
+    document.getElementById("chat-log").appendChild(row);
+
+    scrollToBottom();
+
+  };
+
+  document.getElementById("message-form").addEventListener("submit", function (e) {
+
+    e.preventDefault();
+
+    const input = document.getElementById("msg-input");
+
+    const message = input.value.trim();
+
+    if (message && socket.readyState === WebSocket.OPEN) {
+
+      socket.send(JSON.stringify({
+        message: message,
+        receiver_id: chattingWithId
+      }));
+
+      input.value = "";
+
+    }
+
   });
+
+  scrollToBottom();
+
   {% endif %}
+
+  // ✅ Notification WebSocket
+
+  const notificationSocket = new WebSocket(
+    (window.location.protocol === "https:" ? "wss://" : "ws://") +
+    window.location.host +
+    "/ws/notifications/"
+  );
+
+  notificationSocket.onopen = () => {
+    console.log("🔔 Notification WebSocket Connected");
+  };
+
+  notificationSocket.onmessage = (e) => {
+
+    const data = JSON.parse(e.data);
+
+    console.log("🔔 Notification:", data);
+
+    // ✅ Update Bell Badge
+
+    const badge =
+      document.querySelector(".notification-wrapper .badge");
+
+    if (badge) {
+
+      let count =
+        parseInt(badge.innerText || "0");
+
+      badge.innerText = count + 1;
+
+      badge.style.display = "inline-block";
+
+    } else {
+
+      const bell =
+        document.querySelector(".notification-wrapper");
+
+      const span =
+        document.createElement("span");
+
+      span.className = "badge";
+
+      span.innerText = "1";
+
+      bell.appendChild(span);
+
+    }
+
+    // ✅ NON-BLOCKING TOAST
+    // ❌ alert() removed
+
+    const toast = document.createElement("div");
+
+    toast.className = "toast";
+
+    toast.innerText =
+      "📩 New message received";
+
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+      toast.remove();
+    }, 3000);
+
+  };
+
+  notificationSocket.onerror = (e) => {
+    console.error("❌ Notification WebSocket Error:", e);
+  };
+
+  notificationSocket.onclose = () => {
+    console.log("🔕 Notification WebSocket Closed");
+  };
+
 </script>
 
 </body>

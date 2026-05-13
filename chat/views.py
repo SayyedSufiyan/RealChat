@@ -14,6 +14,7 @@ from .forms import CustomRegisterForm
 from .models import Profile
 from .models import FriendRequest
 from .utils import send_alert_to_user 
+from django.views.decorators.http import require_POST
 
 
 def register_view(request):
@@ -45,8 +46,6 @@ def register_view(request):
 
 
 
-
-
 @login_required
 def chat_room(request, user_id=None):
     # Get accepted friends only
@@ -56,66 +55,6 @@ def chat_room(request, user_id=None):
     ).select_related('from_user', 'to_user')
 
     # Extract friend user IDs
-    friend_ids = set()
-    for fr in friend_reqs:
-        if fr.from_user == request.user:
-            friend_ids.add(fr.to_user.id)
-        else:
-            friend_ids.add(fr.from_user.id)
-
-    # Only show friends in sidebar, preload their profiles
-    users = User.objects.filter(id__in=friend_ids).select_related('profile')
-
-    # Unread message count per user
-    messages_unread = {
-        user.id: Message.objects.filter(
-            sender=user,
-            receiver=request.user,
-            read=False
-        ).count()
-        for user in users
-    }
-
-    # Pending friend requests count (for heart icon)
-    friend_request_count = FriendRequest.objects.filter(
-        to_user=request.user,
-        is_accepted=False
-    ).count()
-
-    selected_user = None
-    messages = []
-
-    if user_id:
-        selected_user = get_object_or_404(User, id=user_id)
-
-        # Ensure selected_user is a friend
-        if selected_user.id not in friend_ids:
-            return render(request, 'chat/access_denied.html')
-
-        messages = Message.objects.filter(
-            Q(sender=request.user, receiver=selected_user) |
-            Q(sender=selected_user, receiver=request.user)
-        ).order_by('timestamp')
-
-        # Mark received messages as read
-        messages.filter(receiver=request.user, read=False).update(read=True)
-
-        # Reset unread count for this user
-        messages_unread[selected_user.id] = 0
-
-    return render(request, 'chat/chat_room.html', {
-        'users': users,
-        'selected_user': selected_user,
-        'messages': messages,
-        'messages_unread': messages_unread,
-        'friend_request_count': friend_request_count,  # ✅ included
-    })    # Get accepted friends only
-    friend_reqs = FriendRequest.objects.filter(
-        Q(from_user=request.user) | Q(to_user=request.user),
-        is_accepted=True
-    ).select_related('from_user', 'to_user')
-
-    # Extract friend user objects
     friend_ids = set()
     for fr in friend_reqs:
         if fr.from_user == request.user:
@@ -136,34 +75,43 @@ def chat_room(request, user_id=None):
         for user in users
     }
 
+    # Count pending friend requests
+    friend_request_count = FriendRequest.objects.filter(
+        to_user=request.user,
+        is_accepted=False
+    ).count()
+
     selected_user = None
     messages = []
 
     if user_id:
         selected_user = get_object_or_404(User, id=user_id)
 
-        # Optional: Ensure selected_user is a friend
+        # Ensure selected_user is a friend
         if selected_user.id not in friend_ids:
-            return render(request, 'chat/access_denied.html')  # Or handle gracefully
+            # Instead of denying access, show empty chat
+            selected_user = None
+            messages = []
+        else:
+            # Fetch messages
+            messages = Message.objects.filter(
+                Q(sender=request.user, receiver=selected_user) |
+                Q(sender=selected_user, receiver=request.user)
+            ).order_by('timestamp')
 
-        messages = Message.objects.filter(
-            Q(sender=request.user, receiver=selected_user) |
-            Q(sender=selected_user, receiver=request.user)
-        ).order_by('timestamp')
+            # Mark received messages as read
+            messages.filter(receiver=request.user, read=False).update(read=True)
 
-        # Mark received messages as read
-        messages.filter(receiver=request.user, read=False).update(read=True)
-
-        # Reset unread count for that user
-        messages_unread[selected_user.id] = 0
+            # Reset unread count
+            messages_unread[selected_user.id] = 0
 
     return render(request, 'chat/chat_room.html', {
         'users': users,
         'selected_user': selected_user,
         'messages': messages,
         'messages_unread': messages_unread,
+        'friend_request_count': friend_request_count,
     })
-
 
 @login_required
 def all_users_view(request):
@@ -268,3 +216,16 @@ def send_alert_to_user(user_id, message):
             'message': message,
         }
     )
+
+@require_POST
+@login_required
+def delete_chat_view(request, user_id):
+    try:
+        other_user = User.objects.get(id=user_id)
+        Message.objects.filter(
+            (Q(sender=request.user) & Q(receiver=other_user)) |
+            (Q(sender=other_user) & Q(receiver=request.user))
+        ).delete()
+        return JsonResponse({"status": "success"})
+    except User.DoesNotExist:
+        return JsonResponse({"status": "error", "message": "User not found"}, status=404)
