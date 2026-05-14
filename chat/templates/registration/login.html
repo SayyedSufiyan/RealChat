@@ -2,137 +2,330 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Login</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: linear-gradient(to right, #304ffe, #ff4081);
-      overflow: hidden;
-    }
+    <meta charset="UTF-8">
 
-    body::before {
-      content: "";
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      background-image: 
-        radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.05) 10%, transparent 50%),
-        radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.05) 10%, transparent 50%);
-      background-repeat: no-repeat;
-      z-index: 0;
-    }
+    <!-- Responsive viewport -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    .login-container {
-      position: relative;
-      z-index: 1;
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(10px);
-      border-radius: 15px;
-      padding: 40px 30px;
-      width: 320px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-      text-align: center;
-    }
+    <title>Modern Responsive Login</title>
 
-    .login-container h2 {
-      color: white;
-      margin-bottom: 30px;
-    }
+    <style>
 
-    .login-container input[type="text"],
-    .login-container input[type="password"] {
-      width: 100%;
-      padding: 12px;
-      margin: 12px 0;
-      border: none;
-      border-radius: 10px;
-      background: rgba(255,255,255,0.2);
-      color: white;
-      font-size: 14px;
-    }
+        /* =========================
+           RESET STYLES
+        ========================== */
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+        }
 
-    .login-container input::placeholder {
-      color: #eee;
-    }
+        /* =========================
+           BODY STYLING
+        ========================== */
+        body{
+            font-family:'Segoe UI', sans-serif;
 
-    .login-container button {
-      width: 100%;
-      padding: 12px;
-      margin-top: 20px;
-      background: rgba(255,255,255,0.4);
-      border: none;
-      border-radius: 25px;
-      color: white;
-      font-weight: bold;
-      font-size: 16px;
-      cursor: pointer;
-      transition: background 0.3s ease;
-    }
+            /* Full screen height */
+            min-height:100vh;
 
-    .login-container button:hover {
-      background: rgba(255,255,255,0.6);
-    }
+            /* Center content */
+            display:flex;
+            justify-content:center;
+            align-items:center;
 
-    .login-container label {
-      display: block;
-      color: white;
-      text-align: left;
-      font-size: 13px;
-      margin-top: 5px;
-    }
+            /* Responsive padding */
+            padding:20px;
 
-    .errorlist {
-      color: #ffbbbb;
-      font-size: 13px;
-      text-align: left;
-      margin: 0 0 10px 0;
-    }
+            /* Modern gradient background */
+            background:linear-gradient(135deg,#304ffe,#ff4081);
 
-    .register-link {
-      margin-top: 20px;
-      font-size: 14px;
-      color: #ffffff;
-    }
+            overflow:hidden;
+            position:relative;
+        }
 
-    .register-link a {
-      color: #ffffff;
-      text-decoration: underline;
-      font-weight: bold;
-    }
+        /* =========================
+           BACKGROUND EFFECTS
+        ========================== */
+        body::before{
+            content:"";
+            position:absolute;
+            inset:0;
 
-    .register-link a:hover {
-      color: #ddd;
-    }
-  </style>
+            background-image:
+            radial-gradient(circle at top left,
+            rgba(255,255,255,0.08),
+            transparent 40%),
+
+            radial-gradient(circle at bottom right,
+            rgba(255,255,255,0.08),
+            transparent 40%);
+
+            z-index:0;
+        }
+
+        /* =========================
+           LOGIN CONTAINER
+        ========================== */
+        .login-container{
+
+            position:relative;
+            z-index:1;
+
+            width:100%;
+            max-width:420px;
+
+            background:rgba(255,255,255,0.12);
+
+            backdrop-filter:blur(12px);
+
+            border-radius:20px;
+
+            padding:35px 30px;
+
+            box-shadow:0 10px 30px rgba(0,0,0,0.2);
+
+            color:white;
+        }
+
+        /* =========================
+           HEADING
+        ========================== */
+        .login-container h2{
+            text-align:center;
+            margin-bottom:30px;
+
+            font-size:2rem;
+            font-weight:700;
+        }
+
+        /* =========================
+           LABELS
+        ========================== */
+        .login-container label{
+            display:block;
+
+            margin-bottom:8px;
+            margin-top:15px;
+
+            font-size:14px;
+            font-weight:500;
+        }
+
+        /* =========================
+           INPUT FIELDS
+        ========================== */
+        .login-container input[type="text"],
+        .login-container input[type="password"]{
+
+            width:100%;
+
+            padding:14px 16px;
+
+            border:none;
+            outline:none;
+
+            border-radius:12px;
+
+            background:rgba(255,255,255,0.18);
+
+            color:white;
+
+            font-size:16px;
+
+            transition:0.3s ease;
+        }
+
+        /* Placeholder color */
+        .login-container input::placeholder{
+            color:#f1f1f1;
+        }
+
+        /* Focus effect */
+        .login-container input:focus{
+            background:rgba(255,255,255,0.25);
+
+            box-shadow:0 0 0 3px rgba(255,255,255,0.15);
+        }
+
+        /* =========================
+           BUTTON
+        ========================== */
+        .login-container button{
+
+            width:100%;
+
+            padding:14px;
+
+            margin-top:25px;
+
+            border:none;
+            border-radius:14px;
+
+            background:white;
+
+            color:#304ffe;
+
+            font-size:16px;
+            font-weight:bold;
+
+            cursor:pointer;
+
+            transition:0.3s ease;
+        }
+
+        /* Hover effect */
+        .login-container button:hover{
+            transform:translateY(-2px);
+
+            background:#f2f2f2;
+        }
+
+        /* =========================
+           ERROR MESSAGES
+        ========================== */
+        .errorlist{
+            color:#ffd4d4;
+
+            font-size:13px;
+
+            margin-top:6px;
+            margin-left:3px;
+        }
+
+        /* =========================
+           REGISTER LINK
+        ========================== */
+        .register-link{
+
+            text-align:center;
+
+            margin-top:22px;
+
+            font-size:14px;
+        }
+
+        .register-link a{
+            color:white;
+
+            font-weight:bold;
+
+            text-decoration:none;
+        }
+
+        .register-link a:hover{
+            text-decoration:underline;
+        }
+
+        /* =========================
+           MOBILE RESPONSIVE
+        ========================== */
+        @media (max-width:768px){
+
+            .login-container{
+                padding:30px 22px;
+            }
+
+            .login-container h2{
+                font-size:1.8rem;
+            }
+
+            .login-container input{
+                padding:13px;
+            }
+
+            .login-container button{
+                padding:13px;
+            }
+        }
+
+        /* =========================
+           EXTRA SMALL DEVICES
+        ========================== */
+        @media (max-width:480px){
+
+            body{
+                padding:15px;
+            }
+
+            .login-container{
+                border-radius:16px;
+                padding:25px 18px;
+            }
+
+            .login-container h2{
+                font-size:1.6rem;
+                margin-bottom:22px;
+            }
+
+            .login-container label{
+                font-size:13px;
+            }
+
+            .login-container input{
+                font-size:16px;
+            }
+
+            .register-link{
+                font-size:13px;
+            }
+        }
+
+    </style>
 </head>
+
 <body>
 
-  <div class="login-container">
-    <h2>Login</h2>
-    <form method="post">
-      {% csrf_token %}
-      {% for field in form %}
-        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-        {{ field }}
-        {% for error in field.errors %}
-          <div class="errorlist">{{ error }}</div>
-        {% endfor %}
-      {% endfor %}
-      <button type="submit">Login</button>
-    </form>
+    <!-- =========================
+         LOGIN CARD
+    ========================== -->
+    <div class="login-container">
 
-    <div class="register-link">
-      Don't have an account?
-      <a href="{% url 'register' %}">Register here</a>
+        <h2>Welcome Back</h2>
+
+        <!-- Login Form -->
+        <form method="POST">
+
+            {% csrf_token %}
+
+            {% for field in form %}
+
+                <!-- Label -->
+                <label for="{{ field.id_for_label }}">
+                    {{ field.label }}
+                </label>
+
+                <!-- Input -->
+                {{ field }}
+
+                <!-- Errors -->
+                {% for error in field.errors %}
+                    <div class="errorlist">
+                        {{ error }}
+                    </div>
+                {% endfor %}
+
+            {% endfor %}
+
+            <!-- Submit Button -->
+            <button type="submit">
+                Login
+            </button>
+
+        </form>
+
+        <!-- Register Link -->
+        <div class="register-link">
+
+            Don't have an account?
+
+            <a href="{% url 'register' %}">
+                Register here
+            </a>
+
+        </div>
+
     </div>
-  </div>
 
 </body>
 </html>
