@@ -1,278 +1,345 @@
-{% load static %}
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register</title>
 
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+  <meta charset="UTF-8">
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <title>{% block title %}My Chat App{% endblock %}</title>
 
-        html {
-            width: 100%;
-            min-height: 100%;
-            overflow-x: hidden;
-            overflow-y: auto;
-        }
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        body {
-            width: 100%;
-            min-height: 100vh;
-            min-height: 100dvh;
-            overflow-x: hidden;
-            overflow-y: auto;
-            font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #304ffe, #ff4081);
-            padding: 15px;
-            -webkit-overflow-scrolling: touch;
-        }
+  {% load static %}
 
-        .main-wrapper {
-            width: 100%;
-            min-height: 100vh;
-            min-height: 100dvh;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            padding-bottom: 100px;
-        }
+  <link rel="stylesheet" href="{% static 'css/your-styles.css' %}">
 
-        .register-container {
-            width: 100%;
-            max-width: 720px;
-            background: rgba(255, 255, 255, 0.12);
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
-            border-radius: 24px;
-            padding: 35px 30px;
-            color: white;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            margin-top: 10px;
-            margin-bottom: 40px;
-        }
+  <link
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    rel="stylesheet"
+  >
 
-        .register-container h2 {
-            text-align: center;
-            font-size: 2.2rem;
-            margin-bottom: 35px;
-            font-weight: 600;
-        }
+  <!-- =========================
+       UNIVERSAL MOBILE SCROLL FIX
+  ========================== -->
 
-        form {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 22px;
-        }
+  <style>
 
-        .full-width {
-            grid-column: 1 / -1;
-        }
+    *{
+      box-sizing:border-box;
+    }
 
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 14px;
-            font-weight: 500;
-        }
+    html{
 
-        input[type="text"],
-        input[type="password"],
-        input[type="email"],
-        input[type="file"] {
-            width: 100%;
-            padding: 15px 16px;
-            border: none;
-            outline: none;
-            border-radius: 14px;
-            background: rgba(255,255,255,0.20);
-            color: white;
-            font-size: 16px;
-        }
+      width:100% !important;
 
-        input::placeholder {
-            color: #eeeeee;
-        }
+      min-height:100% !important;
 
-        input:focus {
-            background: rgba(255,255,255,0.28);
-            box-shadow: 0 0 0 3px rgba(255,255,255,0.12);
-        }
+      height:auto !important;
 
-        input[type="file"] {
-            padding: 12px;
-            cursor: pointer;
-        }
+      overflow-x:hidden !important;
 
-        .errorlist {
-            margin-top: 6px;
-            color: #ffd4d4;
-            font-size: 13px;
-            list-style: none;
-        }
+      overflow-y:auto !important;
 
-        button {
-            grid-column: 1 / -1;
-            width: 100%;
-            padding: 16px;
-            border: none;
-            border-radius: 14px;
-            background: white;
-            color: #304ffe;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 10px;
-        }
+      scroll-behavior:smooth;
+    }
 
-        button:hover {
-            background: #f2f2f2;
-        }
+    body{
 
-        .login-link {
-            grid-column: 1 / -1;
-            text-align: center;
-            margin-top: 22px;
-            font-size: 15px;
-            padding-bottom: 10px;
-        }
+      width:100% !important;
 
-        .login-link a {
-            color: white;
-            font-weight: bold;
-            text-decoration: none;
-        }
+      min-height:100vh !important;
 
-        .login-link a:hover {
-            text-decoration: underline;
-        }
+      min-height:100dvh !important;
 
-        @media screen and (max-width: 600px) {
-            html,
-            body {
-                height: auto;
-                min-height: 100%;
-                overflow-y: auto;
-            }
+      height:auto !important;
 
-            body {
-                padding: 12px;
-            }
+      margin:0 !important;
 
-            .main-wrapper {
-                min-height: auto;
-                display: block;
-                padding-bottom: 120px;
-            }
+      overflow-x:hidden !important;
 
-            .register-container {
-                width: 100%;
-                padding: 28px 18px;
-                border-radius: 18px;
-                margin-top: 10px;
-                margin-bottom: 90px;
-            }
+      overflow-y:auto !important;
 
-            .register-container h2 {
-                font-size: 1.8rem;
-                margin-bottom: 25px;
-            }
+      position:relative !important;
 
-            form {
-                grid-template-columns: 1fr;
-                gap: 18px;
-            }
+      touch-action:auto !important;
 
-            input[type="text"],
-            input[type="password"],
-            input[type="email"],
-            input[type="file"] {
-                padding: 15px;
-                font-size: 16px;
-            }
+      -webkit-overflow-scrolling:touch;
 
-            button {
-                padding: 16px;
-                font-size: 16px;
-            }
+      font-family:'Segoe UI',sans-serif;
+    }
 
-            .login-link {
-                font-size: 14px;
-                padding-bottom: 30px;
-            }
-        }
+    /* =========================
+       MAIN LAYOUT
+    ========================== */
 
-        @media screen and (max-width: 360px) {
-            body {
-                padding: 8px;
-            }
+    main{
 
-            .register-container {
-                padding: 24px 14px;
-            }
+      width:100%;
 
-            .register-container h2 {
-                font-size: 1.6rem;
-            }
-        }
-    </style>
+      min-height:calc(100vh - 60px);
+
+      overflow:visible !important;
+    }
+
+    /* =========================
+       HEADER
+    ========================== */
+
+    .site-header{
+
+      width:100%;
+
+      background:#ffffff;
+
+      padding:14px 20px;
+
+      box-shadow:0 2px 10px rgba(0,0,0,0.08);
+
+      position:sticky;
+
+      top:0;
+
+      z-index:1000;
+    }
+
+    .site-header nav{
+
+      display:flex;
+
+      align-items:center;
+
+      justify-content:space-between;
+
+      gap:15px;
+
+      flex-wrap:wrap;
+    }
+
+    .site-header nav a{
+
+      text-decoration:none;
+
+      color:#333;
+
+      font-weight:600;
+
+      font-size:15px;
+
+      position:relative;
+    }
+
+    .notification-friend{
+
+      position:relative;
+    }
+
+    #alert-badge{
+
+      position:absolute;
+
+      top:-8px;
+
+      right:-10px;
+
+      background:red;
+
+      color:white;
+
+      font-size:11px;
+
+      min-width:18px;
+
+      height:18px;
+
+      border-radius:50%;
+
+      display:flex;
+
+      align-items:center;
+
+      justify-content:center;
+
+      padding:2px 5px;
+    }
+
+    /* =========================
+       FORCE SCROLL FIX
+    ========================== */
+
+    .container,
+    .wrapper,
+    .content,
+    .page,
+    .chat-window,
+    .main-wrapper,
+    .register-container{
+
+      height:auto !important;
+
+      max-height:none !important;
+
+      overflow:visible !important;
+    }
+
+    /* =========================
+       MOBILE
+    ========================== */
+
+    @media screen and (max-width:768px){
+
+      html,
+      body{
+
+        overflow-y:auto !important;
+
+        height:auto !important;
+
+        min-height:100% !important;
+      }
+
+      body{
+
+        padding-bottom:40px;
+      }
+
+      .site-header{
+
+        padding:12px 15px;
+      }
+
+      .site-header nav{
+
+        gap:12px;
+      }
+
+      .site-header nav a{
+
+        font-size:14px;
+      }
+
+      main{
+
+        min-height:auto;
+
+        overflow:visible !important;
+      }
+
+      *{
+
+        -webkit-overflow-scrolling:touch;
+      }
+    }
+
+  </style>
+
+  {% block extra_head %}{% endblock %}
+
 </head>
 
 <body>
 
-    <div class="main-wrapper">
+  <!-- =========================
+       HEADER
+  ========================== -->
 
-        <div class="register-container">
+  <header class="site-header">
 
-            <h2>Register</h2>
+    <nav>
 
-            <form method="POST" enctype="multipart/form-data">
+      <a href="{% url 'all_users' %}">
+        Chats
+      </a>
 
-                {% csrf_token %}
+      <a href="{% url 'notifications' %}" class="notification-friend">
 
-                {% for field in form %}
+        <i class="fa-solid fa-heart"></i>
 
-                    <div class="{% if field.field.widget.input_type == 'file' %}full-width{% endif %}">
+        <span id="alert-badge" style="display:none;">
+          0
+        </span>
 
-                        <label for="{{ field.id_for_label }}">
-                            {{ field.label }}
-                        </label>
+      </a>
 
-                        {{ field }}
+    </nav>
 
-                        {% for error in field.errors %}
-                            <div class="errorlist">
-                                {{ error }}
-                            </div>
-                        {% endfor %}
+  </header>
 
-                    </div>
+  <!-- =========================
+       MAIN CONTENT
+  ========================== -->
 
-                {% endfor %}
+  <main>
 
-                <button type="submit">
-                    Register
-                </button>
+    {% block content %}{% endblock %}
 
-                <div class="login-link">
-                    Already have an account?
-                    <a href="{% url 'login' %}">
-                        Login here
-                    </a>
-                </div>
+  </main>
 
-            </form>
+  <!-- =========================
+       ALERT SOCKET
+  ========================== -->
 
-        </div>
+  <script>
 
-    </div>
+    let alertCount = 0;
+
+    function connectAlertSocket() {
+
+      const alertSocket = new WebSocket(
+
+        (location.protocol === 'https:' ? 'wss://' : 'ws://')
+
+        + window.location.host +
+
+        '/ws/alerts/'
+      );
+
+      alertSocket.onmessage = e => {
+
+        const data = JSON.parse(e.data);
+
+        console.log("🔔 Alert:", data);
+
+        const badge = document.getElementById("alert-badge");
+
+        if (!badge) return;
+
+        alertCount++;
+
+        badge.textContent = alertCount;
+
+        badge.style.display = "flex";
+      };
+
+      alertSocket.onclose = () =>
+
+        setTimeout(connectAlertSocket, 3000);
+    }
+
+    document.addEventListener(
+      "DOMContentLoaded",
+      connectAlertSocket
+    );
+
+  </script>
+
+  <!-- =========================
+       FORCE MOBILE SCROLL FIX
+  ========================== -->
+
+  <script>
+
+    document.documentElement.style.height = "auto";
+
+    document.documentElement.style.overflowY = "auto";
+
+    document.body.style.height = "auto";
+
+    document.body.style.overflowY = "auto";
+
+    document.body.style.position = "relative";
+
+  </script>
+
+  {% block extra_js %}{% endblock %}
 
 </body>
 </html>
