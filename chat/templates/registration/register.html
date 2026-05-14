@@ -4,13 +4,11 @@
 
 <head>
 
-    <!-- Character Encoding -->
     <meta charset="UTF-8">
 
-    <!-- Responsive Viewport -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Responsive Register Page</title>
+    <title>Register</title>
 
     <style>
 
@@ -20,7 +18,7 @@
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
 
         /* =========================
-           RESET CSS
+           RESET
         ========================== */
         *{
             margin:0;
@@ -31,6 +29,7 @@
         html,
         body{
             width:100%;
+            min-height:100%;
             overflow-x:hidden;
         }
 
@@ -39,11 +38,9 @@
         ========================== */
         body{
 
-            font-family:'Poppins', sans-serif;
+            font-family:'Poppins',sans-serif;
 
             background:linear-gradient(135deg,#304ffe,#ff4081);
-
-            position:relative;
 
             padding:20px;
 
@@ -53,46 +50,17 @@
         }
 
         /* =========================
-           BACKGROUND EFFECT
-        ========================== */
-        body::before{
-
-            content:"";
-
-            position:fixed;
-
-            inset:0;
-
-            background-image:
-            radial-gradient(circle at top left,
-            rgba(255,255,255,0.10),
-            transparent 35%),
-
-            radial-gradient(circle at bottom right,
-            rgba(255,255,255,0.10),
-            transparent 35%);
-
-            z-index:0;
-        }
-
-        /* =========================
            PAGE WRAPPER
         ========================== */
         .page-wrapper{
 
-            min-height:100vh;
+            width:100%;
 
             display:flex;
 
             justify-content:center;
 
-            align-items:flex-start;
-
-            padding:20px 0;
-
-            position:relative;
-
-            z-index:1;
+            padding:20px 0 60px 0;
         }
 
         /* =========================
@@ -108,32 +76,15 @@
 
             backdrop-filter:blur(14px);
 
+            -webkit-backdrop-filter:blur(14px);
+
             border-radius:24px;
 
             padding:45px 35px;
 
-            box-shadow:
-            0 10px 30px rgba(0,0,0,0.2);
+            box-shadow:0 10px 30px rgba(0,0,0,0.2);
 
             color:white;
-
-            animation:fadeIn 0.5s ease;
-        }
-
-        /* =========================
-           ANIMATION
-        ========================== */
-        @keyframes fadeIn{
-
-            from{
-                opacity:0;
-                transform:translateY(10px);
-            }
-
-            to{
-                opacity:1;
-                transform:translateY(0);
-            }
         }
 
         /* =========================
@@ -162,7 +113,9 @@
             gap:22px;
         }
 
-        /* Full Width */
+        /* =========================
+           FULL WIDTH
+        ========================== */
         .full-width{
 
             grid-column:1 / -1;
@@ -209,22 +162,27 @@
             transition:0.3s ease;
         }
 
-        /* Placeholder */
+        /* =========================
+           PLACEHOLDER
+        ========================== */
         input::placeholder{
 
-            color:#eee;
+            color:#eeeeee;
         }
 
-        /* Focus Effect */
+        /* =========================
+           FOCUS EFFECT
+        ========================== */
         input:focus{
 
             background:rgba(255,255,255,0.28);
 
-            box-shadow:
-            0 0 0 3px rgba(255,255,255,0.12);
+            box-shadow:0 0 0 3px rgba(255,255,255,0.12);
         }
 
-        /* File Input */
+        /* =========================
+           FILE INPUT
+        ========================== */
         input[type="file"]{
 
             padding:12px;
@@ -239,7 +197,7 @@
 
             margin-top:6px;
 
-            color:#ffd0d0;
+            color:#ffd4d4;
 
             font-size:13px;
         }
@@ -254,8 +212,6 @@
             width:100%;
 
             padding:16px;
-
-            margin-top:10px;
 
             border:none;
 
@@ -272,14 +228,18 @@
             cursor:pointer;
 
             transition:0.3s ease;
+
+            margin-top:10px;
         }
 
-        /* Hover */
+        /* =========================
+           BUTTON HOVER
+        ========================== */
         button:hover{
 
-            transform:translateY(-2px);
-
             background:#f2f2f2;
+
+            transform:translateY(-2px);
         }
 
         /* =========================
@@ -311,7 +271,7 @@
         }
 
         /* =========================
-           TABLET RESPONSIVE
+           TABLET
         ========================== */
         @media screen and (max-width:768px){
 
@@ -327,7 +287,7 @@
         }
 
         /* =========================
-           MOBILE RESPONSIVE
+           MOBILE
         ========================== */
         @media screen and (max-width:600px){
 
@@ -338,7 +298,7 @@
 
             .page-wrapper{
 
-                padding:10px 0 30px 0;
+                padding:10px 0 80px 0;
             }
 
             .register-container{
@@ -404,7 +364,9 @@
 
             <h2>Register</h2>
 
-            <!-- Register Form -->
+            <!-- =========================
+                 REGISTER FORM
+            ========================== -->
             <form method="POST" enctype="multipart/form-data">
 
                 {% csrf_token %}
@@ -413,21 +375,15 @@
 
                     <div class="{% if field.field.widget.input_type == 'file' %}full-width{% endif %}">
 
-                        <!-- Label -->
+                        <!-- LABEL -->
                         <label for="{{ field.id_for_label }}">
                             {{ field.label }}
                         </label>
 
-                        <!-- Input -->
-                        <input
-                            type="{{ field.field.widget.input_type }}"
-                            name="{{ field.name }}"
-                            id="{{ field.id_for_label }}"
-                            placeholder="Enter {{ field.label }}"
-                            {% if field.field.required %}required{% endif %}
-                        >
+                        <!-- DJANGO FIELD -->
+                        {{ field }}
 
-                        <!-- Errors -->
+                        <!-- ERRORS -->
                         {% for error in field.errors %}
 
                             <div class="errorlist">
@@ -440,12 +396,12 @@
 
                 {% endfor %}
 
-                <!-- Register Button -->
+                <!-- BUTTON -->
                 <button type="submit">
                     Register
                 </button>
 
-                <!-- Login Link -->
+                <!-- LOGIN LINK -->
                 <div class="login-link">
 
                     Already have an account?
