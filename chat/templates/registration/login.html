@@ -1,18 +1,20 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
 
-    <!-- Responsive viewport -->
+    <!-- Mobile Responsive -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Modern Responsive Login</title>
+    <title>Responsive Login</title>
 
     <style>
 
         /* =========================
-           RESET STYLES
+           RESET
         ========================== */
         *{
             margin:0;
@@ -21,36 +23,38 @@
         }
 
         /* =========================
-           BODY STYLING
+           BODY
         ========================== */
         body{
+
             font-family:'Segoe UI', sans-serif;
 
-            /* Full screen height */
             min-height:100vh;
 
-            /* Center content */
             display:flex;
             justify-content:center;
             align-items:center;
 
-            /* Responsive padding */
             padding:20px;
 
-            /* Modern gradient background */
             background:linear-gradient(135deg,#304ffe,#ff4081);
 
-            overflow:hidden;
             position:relative;
+
+            overflow:hidden;
         }
 
         /* =========================
-           BACKGROUND EFFECTS
+           BACKGROUND EFFECT
         ========================== */
         body::before{
+
             content:"";
+
             position:absolute;
-            inset:0;
+
+            width:100%;
+            height:100%;
 
             background-image:
             radial-gradient(circle at top left,
@@ -70,32 +74,37 @@
         .login-container{
 
             position:relative;
+
             z-index:1;
 
             width:100%;
-            max-width:420px;
+
+            max-width:430px;
 
             background:rgba(255,255,255,0.12);
 
-            backdrop-filter:blur(12px);
+            backdrop-filter:blur(14px);
 
-            border-radius:20px;
+            border-radius:22px;
 
-            padding:35px 30px;
+            padding:40px 30px;
 
-            box-shadow:0 10px 30px rgba(0,0,0,0.2);
+            box-shadow:0 10px 35px rgba(0,0,0,0.25);
 
             color:white;
         }
 
         /* =========================
-           HEADING
+           TITLE
         ========================== */
         .login-container h2{
+
             text-align:center;
+
             margin-bottom:30px;
 
-            font-size:2rem;
+            font-size:32px;
+
             font-weight:700;
         }
 
@@ -103,29 +112,32 @@
            LABELS
         ========================== */
         .login-container label{
+
             display:block;
 
-            margin-bottom:8px;
             margin-top:15px;
+            margin-bottom:8px;
 
             font-size:14px;
+
             font-weight:500;
         }
 
         /* =========================
-           INPUT FIELDS
+           INPUTS
         ========================== */
         .login-container input[type="text"],
         .login-container input[type="password"]{
 
             width:100%;
 
-            padding:14px 16px;
+            padding:15px;
 
             border:none;
+
             outline:none;
 
-            border-radius:12px;
+            border-radius:14px;
 
             background:rgba(255,255,255,0.18);
 
@@ -136,13 +148,15 @@
             transition:0.3s ease;
         }
 
-        /* Placeholder color */
+        /* Placeholder */
         .login-container input::placeholder{
-            color:#f1f1f1;
+
+            color:#eeeeee;
         }
 
-        /* Focus effect */
+        /* Focus */
         .login-container input:focus{
+
             background:rgba(255,255,255,0.25);
 
             box-shadow:0 0 0 3px rgba(255,255,255,0.15);
@@ -155,18 +169,20 @@
 
             width:100%;
 
-            padding:14px;
-
             margin-top:25px;
 
+            padding:15px;
+
             border:none;
+
             border-radius:14px;
 
             background:white;
 
             color:#304ffe;
 
-            font-size:16px;
+            font-size:17px;
+
             font-weight:bold;
 
             cursor:pointer;
@@ -174,23 +190,26 @@
             transition:0.3s ease;
         }
 
-        /* Hover effect */
+        /* Hover */
         .login-container button:hover{
+
             transform:translateY(-2px);
 
-            background:#f2f2f2;
+            background:#f1f1f1;
         }
 
         /* =========================
-           ERROR MESSAGES
+           ERROR TEXT
         ========================== */
         .errorlist{
+
             color:#ffd4d4;
 
-            font-size:13px;
-
             margin-top:6px;
+
             margin-left:3px;
+
+            font-size:13px;
         }
 
         /* =========================
@@ -202,10 +221,11 @@
 
             margin-top:22px;
 
-            font-size:14px;
+            font-size:15px;
         }
 
         .register-link a{
+
             color:white;
 
             font-weight:bold;
@@ -214,76 +234,92 @@
         }
 
         .register-link a:hover{
+
             text-decoration:underline;
+        }
+
+        /* =========================
+           TABLET RESPONSIVE
+        ========================== */
+        @media (max-width:768px){
+
+            .login-container{
+
+                max-width:500px;
+
+                padding:35px 28px;
+            }
+
+            .login-container h2{
+
+                font-size:30px;
+            }
         }
 
         /* =========================
            MOBILE RESPONSIVE
         ========================== */
-        @media (max-width:768px){
-
-            .login-container{
-                padding:30px 22px;
-            }
-
-            .login-container h2{
-                font-size:1.8rem;
-            }
-
-            .login-container input{
-                padding:13px;
-            }
-
-            .login-container button{
-                padding:13px;
-            }
-        }
-
-        /* =========================
-           EXTRA SMALL DEVICES
-        ========================== */
         @media (max-width:480px){
 
             body{
-                padding:15px;
+
+                padding:18px;
             }
 
             .login-container{
-                border-radius:16px;
-                padding:25px 18px;
+
+                max-width:100%;
+
+                padding:35px 22px;
+
+                border-radius:18px;
             }
 
             .login-container h2{
-                font-size:1.6rem;
-                margin-bottom:22px;
+
+                font-size:28px;
+
+                margin-bottom:24px;
             }
 
             .login-container label{
-                font-size:13px;
+
+                font-size:14px;
             }
 
             .login-container input{
+
+                padding:16px;
+
+                font-size:16px;
+            }
+
+            .login-container button{
+
+                padding:16px;
+
                 font-size:16px;
             }
 
             .register-link{
-                font-size:13px;
+
+                font-size:14px;
             }
         }
 
     </style>
+
 </head>
 
 <body>
 
     <!-- =========================
-         LOGIN CARD
+         LOGIN BOX
     ========================== -->
     <div class="login-container">
 
-        <h2>Welcome Back</h2>
+        <h2>Login</h2>
 
-        <!-- Login Form -->
         <form method="POST">
 
             {% csrf_token %}
@@ -300,21 +336,23 @@
 
                 <!-- Errors -->
                 {% for error in field.errors %}
+
                     <div class="errorlist">
                         {{ error }}
                     </div>
+
                 {% endfor %}
 
             {% endfor %}
 
-            <!-- Submit Button -->
+            <!-- Button -->
             <button type="submit">
                 Login
             </button>
 
         </form>
 
-        <!-- Register Link -->
+        <!-- Register -->
         <div class="register-link">
 
             Don't have an account?
@@ -328,4 +366,5 @@
     </div>
 
 </body>
+
 </html>
