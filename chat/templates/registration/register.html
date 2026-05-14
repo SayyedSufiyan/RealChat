@@ -28,8 +28,10 @@
             box-sizing:border-box;
         }
 
-        html{
-            height:100%;
+        html,
+        body{
+            width:100%;
+            overflow-x:hidden;
         }
 
         /* =========================
@@ -39,19 +41,11 @@
 
             font-family:'Poppins', sans-serif;
 
-            min-height:100vh;
-
-            display:flex;
-
-            justify-content:center;
-
-            align-items:center;
-
-            padding:25px;
-
             background:linear-gradient(135deg,#304ffe,#ff4081);
 
             position:relative;
+
+            padding:20px;
 
             overflow-y:auto;
 
@@ -65,7 +59,7 @@
 
             content:"";
 
-            position:absolute;
+            position:fixed;
 
             inset:0;
 
@@ -82,27 +76,41 @@
         }
 
         /* =========================
-           REGISTER CONTAINER
+           PAGE WRAPPER
         ========================== */
-        .register-container{
+        .page-wrapper{
+
+            min-height:100vh;
+
+            display:flex;
+
+            justify-content:center;
+
+            align-items:flex-start;
+
+            padding:20px 0;
 
             position:relative;
 
             z-index:1;
+        }
+
+        /* =========================
+           REGISTER CONTAINER
+        ========================== */
+        .register-container{
 
             width:100%;
 
             max-width:720px;
 
-            margin:40px 0;
-
-            padding:45px 35px;
-
-            border-radius:24px;
-
             background:rgba(255,255,255,0.12);
 
             backdrop-filter:blur(14px);
+
+            border-radius:24px;
+
+            padding:45px 35px;
 
             box-shadow:
             0 10px 30px rgba(0,0,0,0.2);
@@ -113,7 +121,7 @@
         }
 
         /* =========================
-           FADE ANIMATION
+           ANIMATION
         ========================== */
         @keyframes fadeIn{
 
@@ -135,7 +143,7 @@
 
             text-align:center;
 
-            font-size:2rem;
+            font-size:2.2rem;
 
             margin-bottom:35px;
 
@@ -154,7 +162,7 @@
             gap:22px;
         }
 
-        /* Full Width Field */
+        /* Full Width */
         .full-width{
 
             grid-column:1 / -1;
@@ -216,9 +224,7 @@
             0 0 0 3px rgba(255,255,255,0.12);
         }
 
-        /* =========================
-           FILE INPUT FIX
-        ========================== */
+        /* File Input */
         input[type="file"]{
 
             padding:12px;
@@ -327,9 +333,12 @@
 
             body{
 
-                align-items:flex-start;
+                padding:15px;
+            }
 
-                padding:18px;
+            .page-wrapper{
+
+                padding:10px 0 30px 0;
             }
 
             .register-container{
@@ -338,8 +347,6 @@
 
                 max-width:100%;
 
-                margin:20px 0;
-
                 padding:30px 20px;
 
                 border-radius:18px;
@@ -347,7 +354,7 @@
 
             .register-container h2{
 
-                font-size:28px;
+                font-size:2rem;
 
                 margin-bottom:25px;
             }
@@ -386,65 +393,72 @@
 <body>
 
     <!-- =========================
-         REGISTER CARD
+         PAGE WRAPPER
     ========================== -->
-    <div class="register-container">
+    <div class="page-wrapper">
 
-        <h2>Create Account</h2>
+        <!-- =========================
+             REGISTER CARD
+        ========================== -->
+        <div class="register-container">
 
-        <!-- Register Form -->
-        <form method="POST" enctype="multipart/form-data">
+            <h2>Register</h2>
 
-            {% csrf_token %}
+            <!-- Register Form -->
+            <form method="POST" enctype="multipart/form-data">
 
-            {% for field in form %}
+                {% csrf_token %}
 
-                <div class="{% if field.field.widget.input_type == 'file' %}full-width{% endif %}">
+                {% for field in form %}
 
-                    <!-- Label -->
-                    <label for="{{ field.id_for_label }}">
-                        {{ field.label }}
-                    </label>
+                    <div class="{% if field.field.widget.input_type == 'file' %}full-width{% endif %}">
 
-                    <!-- Custom Input -->
-                    <input
-                        type="{{ field.field.widget.input_type }}"
-                        name="{{ field.name }}"
-                        id="{{ field.id_for_label }}"
-                        placeholder="Enter {{ field.label }}"
-                        {% if field.field.required %}required{% endif %}
-                    >
+                        <!-- Label -->
+                        <label for="{{ field.id_for_label }}">
+                            {{ field.label }}
+                        </label>
 
-                    <!-- Error Messages -->
-                    {% for error in field.errors %}
+                        <!-- Input -->
+                        <input
+                            type="{{ field.field.widget.input_type }}"
+                            name="{{ field.name }}"
+                            id="{{ field.id_for_label }}"
+                            placeholder="Enter {{ field.label }}"
+                            {% if field.field.required %}required{% endif %}
+                        >
 
-                        <div class="errorlist">
-                            {{ error }}
-                        </div>
+                        <!-- Errors -->
+                        {% for error in field.errors %}
 
-                    {% endfor %}
+                            <div class="errorlist">
+                                {{ error }}
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% endfor %}
+
+                <!-- Register Button -->
+                <button type="submit">
+                    Register
+                </button>
+
+                <!-- Login Link -->
+                <div class="login-link">
+
+                    Already have an account?
+
+                    <a href="{% url 'login' %}">
+                        Login here
+                    </a>
 
                 </div>
 
-            {% endfor %}
+            </form>
 
-            <!-- Register Button -->
-            <button type="submit">
-                Register
-            </button>
-
-            <!-- Login Link -->
-            <div class="login-link">
-
-                Already have an account?
-
-                <a href="{% url 'login' %}">
-                    Login here
-                </a>
-
-            </div>
-
-        </form>
+        </div>
 
     </div>
 
