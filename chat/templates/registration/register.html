@@ -42,43 +42,35 @@
       scroll-behavior:smooth;
     }
 
-    body{
+body {
 
-      width:100% !important;
+    margin:0;
 
-      min-height:100vh !important;
+    background: linear-gradient(135deg, #304ffe, #ff4081);
 
-      min-height:100dvh !important;
+    font-family: 'Poppins', sans-serif;
 
-      height:auto !important;
+    overflow-x:hidden;
 
-      margin:0 !important;
+    overflow-y:scroll;
 
-      overflow-x:hidden !important;
+    padding:15px;
 
-      overflow-y:auto !important;
+    touch-action:pan-y;
 
-      position:relative !important;
-
-      touch-action:auto !important;
-
-      -webkit-overflow-scrolling:touch;
-
-      font-family:'Segoe UI',sans-serif;
-    }
+    -webkit-overflow-scrolling:touch;
+}
 
     /* =========================
        MAIN LAYOUT
     ========================== */
 
-    main{
+.main-wrapper{
 
-      width:100%;
+    width:100%;
 
-      min-height:calc(100vh - 60px);
-
-      overflow:visible !important;
-    }
+    padding-bottom:120px;
+}
 
     /* =========================
        HEADER
