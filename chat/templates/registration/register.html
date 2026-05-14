@@ -1,183 +1,452 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <title>Register</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    <!-- Character Encoding -->
+    <meta charset="UTF-8">
 
-    body {
-      font-family: 'Poppins', sans-serif;
-      min-height: 100vh;
-      background: linear-gradient(to right, #304ffe, #ff4081);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      overflow: hidden;
-    }
+    <!-- Responsive Viewport -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    body::before {
-      content: "";
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      background-image:
-        radial-gradient(circle at 25% 30%, rgba(255, 255, 255, 0.1) 10%, transparent 60%),
-        radial-gradient(circle at 75% 70%, rgba(255, 255, 255, 0.08) 10%, transparent 60%);
-      z-index: 0;
-    }
+    <title>Responsive Register Page</title>
 
-    .register-container {
-      position: relative;
-      z-index: 1;
-      width: 90%;
-      max-width: 700px;
-      background: rgba(255, 255, 255, 0.12);
-      padding: 50px 40px;
-      border-radius: 20px;
-      backdrop-filter: blur(15px);
-      box-shadow: 0 12px 25px rgba(0, 0, 0, 0.3);
-      color: white;
-      animation: fadeIn 0.6s ease;
-    }
+    <style>
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: scale(0.95); }
-      to { opacity: 1; transform: scale(1); }
-    }
+        /* =========================
+           GOOGLE FONT
+        ========================== */
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
 
-    h2 {
-      text-align: center;
-      font-size: 28px;
-      font-weight: 600;
-      margin-bottom: 35px;
-    }
+        /* =========================
+           RESET CSS
+        ========================== */
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+        }
 
-    form {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px 25px;
-    }
+        html{
+            height:100%;
+        }
 
-    .full-width {
-      grid-column: 1 / -1;
-    }
+        /* =========================
+           BODY
+        ========================== */
+        body{
 
-    label {
-      display: block;
-      font-size: 13px;
-      margin-bottom: 5px;
-      color: #f1f1f1;
-    }
+            font-family:'Poppins', sans-serif;
 
-    input[type="text"],
-    input[type="password"],
-    input[type="email"],
-    input[type="file"] {
-      width: 100%;
-      padding: 11px 14px;
-      border: none;
-      border-radius: 10px;
-      background: rgba(255, 255, 255, 0.25);
-      color: #fff;
-      font-size: 14px;
-      transition: background 0.3s ease, box-shadow 0.3s ease;
-    }
+            min-height:100vh;
 
-    input:focus {
-      outline: none;
-      background: rgba(255, 255, 255, 0.35);
-      box-shadow: 0 0 0 2px rgba(255,255,255,0.4);
-    }
+            display:flex;
 
-    input::placeholder {
-      color: #ddd;
-    }
+            justify-content:center;
 
-    .errorlist {
-      color: #ffb3b3;
-      font-size: 13px;
-      margin-top: 5px;
-    }
+            align-items:center;
 
-    button {
-      grid-column: 1 / -1;
-      padding: 13px;
-      background-color: #ffffffaa;
-      color: #333;
-      border: none;
-      border-radius: 30px;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.3s ease, transform 0.2s ease;
-      margin-top: 10px;
-    }
+            padding:25px;
 
-    button:hover {
-      background: #fff;
-      transform: translateY(-2px);
-    }
+            background:linear-gradient(135deg,#304ffe,#ff4081);
 
-    .login-link {
-      text-align: center;
-      grid-column: 1 / -1;
-      font-size: 14px;
-      margin-top: 20px;
-    }
+            position:relative;
 
-    .login-link a {
-      color: #ffffff;
-      font-weight: bold;
-      text-decoration: underline;
-    }
+            overflow-y:auto;
 
-    .login-link a:hover {
-      color: #ddd;
-    }
+            -webkit-text-size-adjust:100%;
+        }
 
-    @media (max-width: 600px) {
-      form {
-        grid-template-columns: 1fr;
-      }
+        /* =========================
+           BACKGROUND EFFECT
+        ========================== */
+        body::before{
 
-      button {
-        margin-top: 20px;
-      }
-    }
-  </style>
+            content:"";
+
+            position:absolute;
+
+            inset:0;
+
+            background-image:
+            radial-gradient(circle at top left,
+            rgba(255,255,255,0.10),
+            transparent 35%),
+
+            radial-gradient(circle at bottom right,
+            rgba(255,255,255,0.10),
+            transparent 35%);
+
+            z-index:0;
+        }
+
+        /* =========================
+           REGISTER CONTAINER
+        ========================== */
+        .register-container{
+
+            position:relative;
+
+            z-index:1;
+
+            width:100%;
+
+            max-width:720px;
+
+            margin:40px 0;
+
+            padding:45px 35px;
+
+            border-radius:24px;
+
+            background:rgba(255,255,255,0.12);
+
+            backdrop-filter:blur(14px);
+
+            box-shadow:
+            0 10px 30px rgba(0,0,0,0.2);
+
+            color:white;
+
+            animation:fadeIn 0.5s ease;
+        }
+
+        /* =========================
+           FADE ANIMATION
+        ========================== */
+        @keyframes fadeIn{
+
+            from{
+                opacity:0;
+                transform:translateY(10px);
+            }
+
+            to{
+                opacity:1;
+                transform:translateY(0);
+            }
+        }
+
+        /* =========================
+           HEADING
+        ========================== */
+        .register-container h2{
+
+            text-align:center;
+
+            font-size:2rem;
+
+            margin-bottom:35px;
+
+            font-weight:600;
+        }
+
+        /* =========================
+           FORM GRID
+        ========================== */
+        form{
+
+            display:grid;
+
+            grid-template-columns:1fr 1fr;
+
+            gap:22px;
+        }
+
+        /* Full Width Field */
+        .full-width{
+
+            grid-column:1 / -1;
+        }
+
+        /* =========================
+           LABEL
+        ========================== */
+        label{
+
+            display:block;
+
+            margin-bottom:8px;
+
+            font-size:14px;
+
+            font-weight:500;
+        }
+
+        /* =========================
+           INPUTS
+        ========================== */
+        input[type="text"],
+        input[type="password"],
+        input[type="email"],
+        input[type="file"]{
+
+            width:100%;
+
+            padding:15px 16px;
+
+            border:none;
+
+            outline:none;
+
+            border-radius:14px;
+
+            background:rgba(255,255,255,0.20);
+
+            color:white;
+
+            font-size:16px;
+
+            transition:0.3s ease;
+        }
+
+        /* Placeholder */
+        input::placeholder{
+
+            color:#eee;
+        }
+
+        /* Focus Effect */
+        input:focus{
+
+            background:rgba(255,255,255,0.28);
+
+            box-shadow:
+            0 0 0 3px rgba(255,255,255,0.12);
+        }
+
+        /* =========================
+           FILE INPUT FIX
+        ========================== */
+        input[type="file"]{
+
+            padding:12px;
+
+            cursor:pointer;
+        }
+
+        /* =========================
+           ERROR MESSAGE
+        ========================== */
+        .errorlist{
+
+            margin-top:6px;
+
+            color:#ffd0d0;
+
+            font-size:13px;
+        }
+
+        /* =========================
+           BUTTON
+        ========================== */
+        button{
+
+            grid-column:1 / -1;
+
+            width:100%;
+
+            padding:16px;
+
+            margin-top:10px;
+
+            border:none;
+
+            border-radius:14px;
+
+            background:white;
+
+            color:#304ffe;
+
+            font-size:16px;
+
+            font-weight:600;
+
+            cursor:pointer;
+
+            transition:0.3s ease;
+        }
+
+        /* Hover */
+        button:hover{
+
+            transform:translateY(-2px);
+
+            background:#f2f2f2;
+        }
+
+        /* =========================
+           LOGIN LINK
+        ========================== */
+        .login-link{
+
+            grid-column:1 / -1;
+
+            text-align:center;
+
+            margin-top:22px;
+
+            font-size:15px;
+        }
+
+        .login-link a{
+
+            color:white;
+
+            font-weight:bold;
+
+            text-decoration:none;
+        }
+
+        .login-link a:hover{
+
+            text-decoration:underline;
+        }
+
+        /* =========================
+           TABLET RESPONSIVE
+        ========================== */
+        @media screen and (max-width:768px){
+
+            .register-container{
+
+                padding:35px 25px;
+            }
+
+            form{
+
+                gap:18px;
+            }
+        }
+
+        /* =========================
+           MOBILE RESPONSIVE
+        ========================== */
+        @media screen and (max-width:600px){
+
+            body{
+
+                align-items:flex-start;
+
+                padding:18px;
+            }
+
+            .register-container{
+
+                width:100%;
+
+                max-width:100%;
+
+                margin:20px 0;
+
+                padding:30px 20px;
+
+                border-radius:18px;
+            }
+
+            .register-container h2{
+
+                font-size:28px;
+
+                margin-bottom:25px;
+            }
+
+            form{
+
+                grid-template-columns:1fr;
+
+                gap:18px;
+            }
+
+            input{
+
+                padding:16px;
+
+                font-size:16px;
+            }
+
+            button{
+
+                padding:16px;
+
+                font-size:17px;
+            }
+
+            .login-link{
+
+                font-size:14px;
+            }
+        }
+
+    </style>
+
 </head>
+
 <body>
 
-  <div class="register-container">
-    <h2>Register</h2>
-    <form method="post" enctype="multipart/form-data">
-      {% csrf_token %}
-      {% for field in form %}
-        <div class="{% if field.field.widget.input_type == 'file' %}full-width{% endif %}">
-          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-          {{ field }}
-          {% for error in field.errors %}
-            <div class="errorlist">{{ error }}</div>
-          {% endfor %}
-        </div>
-      {% endfor %}
+    <!-- =========================
+         REGISTER CARD
+    ========================== -->
+    <div class="register-container">
 
-      <button type="submit">Register</button>
+        <h2>Create Account</h2>
 
-      <div class="login-link">
-        Already have an account? <a href="{% url 'login' %}">Login here</a>
-      </div>
-    </form>
-  </div>
+        <!-- Register Form -->
+        <form method="POST" enctype="multipart/form-data">
+
+            {% csrf_token %}
+
+            {% for field in form %}
+
+                <div class="{% if field.field.widget.input_type == 'file' %}full-width{% endif %}">
+
+                    <!-- Label -->
+                    <label for="{{ field.id_for_label }}">
+                        {{ field.label }}
+                    </label>
+
+                    <!-- Custom Input -->
+                    <input
+                        type="{{ field.field.widget.input_type }}"
+                        name="{{ field.name }}"
+                        id="{{ field.id_for_label }}"
+                        placeholder="Enter {{ field.label }}"
+                        {% if field.field.required %}required{% endif %}
+                    >
+
+                    <!-- Error Messages -->
+                    {% for error in field.errors %}
+
+                        <div class="errorlist">
+                            {{ error }}
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            {% endfor %}
+
+            <!-- Register Button -->
+            <button type="submit">
+                Register
+            </button>
+
+            <!-- Login Link -->
+            <div class="login-link">
+
+                Already have an account?
+
+                <a href="{% url 'login' %}">
+                    Login here
+                </a>
+
+            </div>
+
+        </form>
+
+    </div>
 
 </body>
 </html>
