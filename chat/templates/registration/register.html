@@ -46,6 +46,8 @@
             overflow-y:auto;
 
             -webkit-overflow-scrolling:touch;
+            height:auto !important;
+           
         }
 
         /* =========================
@@ -55,7 +57,7 @@
 
             width:100%;
 
-            min-height:100%;
+           
 
             display:flex;
 
@@ -389,6 +391,14 @@
         </div>
 
     </div>
+<script>
 
+document.body.style.height = "auto";
+
+document.body.style.overflowY = "scroll";
+
+document.documentElement.style.overflowY = "scroll";
+
+</script>
 </body>
 </html>
