@@ -229,23 +229,3 @@ def delete_chat_view(request, user_id):
         return JsonResponse({"status": "success"})
     except User.DoesNotExist:
         return JsonResponse({"status": "error", "message": "User not found"}, status=404)   
-
-from django.http import HttpResponse
-from django.contrib.auth.models import User
-
-def create_admin(request):
-    username = "admin"
-    password = "admin123456"
-
-    user, created = User.objects.get_or_create(username=username)
-
-    user.email = "admin@gmail.com"
-    user.is_staff = True
-    user.is_superuser = True
-    user.set_password(password)
-    user.save()
-
-    if created:
-        return HttpResponse("Superuser created successfully")
-    else:
-        return HttpResponse("Superuser updated successfully")
