@@ -228,4 +228,18 @@ def delete_chat_view(request, user_id):
         ).delete()
         return JsonResponse({"status": "success"})
     except User.DoesNotExist:
-        return JsonResponse({"status": "error", "message": "User not found"}, status=404)
+        return JsonResponse({"status": "error", "message": "User not found"}, status=404)   
+
+def create_admin(request):
+
+    if not User.objects.filter(username='admin').exists():
+
+        User.objects.create_superuser(
+            username='admin',
+            email='admin@gmail.com',
+            password='admin123'
+        )
+
+        return HttpResponse("Superuser created")
+
+    return HttpResponse("Already exists")
