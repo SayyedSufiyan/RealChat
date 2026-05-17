@@ -9,22 +9,32 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
   <style>
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
+    html,
     body {
       margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
       font-family: 'Segoe UI', sans-serif;
-      display: flex;
-      height: 100vh;
       background: #f0f2f5;
     }
 
+    body {
+      display: flex;
+    }
+
     .sidebar {
-      width: 300px;
+      width: 320px;
+      height: 100vh;
       background: #fff;
       border-right: 1px solid #ddd;
       display: flex;
       flex-direction: column;
+      overflow: hidden;
     }
 
     .sidebar-header {
@@ -34,27 +44,29 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-shrink: 0;
     }
 
     .header-icons {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 14px;
     }
 
     .notification-wrapper {
       position: relative;
       color: white;
       font-size: 20px;
+      text-decoration: none;
     }
 
     .badge {
       position: absolute;
-      top: -5px;
+      top: -8px;
       right: -10px;
       background: red;
       color: white;
-      font-size: 12px;
+      font-size: 11px;
       padding: 2px 6px;
       border-radius: 50%;
     }
@@ -62,7 +74,7 @@
     .menu-button {
       background: none;
       border: none;
-      font-size: 20px;
+      font-size: 22px;
       color: white;
       cursor: pointer;
     }
@@ -70,13 +82,16 @@
     .search-wrapper {
       padding: 10px 16px;
       border-bottom: 1px solid #ddd;
+      flex-shrink: 0;
     }
 
     #user-search {
       width: 100%;
-      padding: 8px 12px;
+      padding: 10px 14px;
       border: 1px solid #ccc;
-      border-radius: 20px;
+      border-radius: 25px;
+      outline: none;
+      font-size: 14px;
     }
 
     .dropdown {
@@ -89,6 +104,7 @@
       border-radius: 8px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.15);
       z-index: 1000;
+      min-width: 200px;
     }
 
     .dropdown a {
@@ -103,10 +119,16 @@
       background-color: #f9f9f9;
     }
 
+    #user-list {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
     .user-link {
       display: flex;
       align-items: center;
-      padding: 12px 16px;
+      padding: 14px 16px;
       border-bottom: 1px solid #eee;
       text-decoration: none;
       color: #333;
@@ -118,10 +140,16 @@
     }
 
     .user-link img {
-      width: 40px;
-      height: 40px;
+      width: 44px;
+      height: 44px;
       border-radius: 50%;
       object-fit: cover;
+      flex-shrink: 0;
+    }
+
+    .user-name {
+      flex: 1;
+      font-size: 15px;
     }
 
     .notification-badge {
@@ -130,14 +158,16 @@
       font-size: 11px;
       padding: 2px 6px;
       border-radius: 50%;
-      min-width: 16px;
+      min-width: 18px;
       text-align: center;
     }
 
     .chat-window {
       flex: 1;
+      height: 100vh;
       display: flex;
       flex-direction: column;
+      overflow: hidden;
     }
 
     .top-bar {
@@ -147,14 +177,23 @@
       font-weight: bold;
       border-bottom: 1px solid #ddd;
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .back-btn {
+      display: none;
+      color: #333;
+      font-size: 20px;
+      text-decoration: none;
     }
 
     #chat-log {
       flex: 1;
       padding: 20px;
       overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
       display: flex;
       flex-direction: column;
       gap: 10px;
@@ -165,8 +204,8 @@
       max-width: 60%;
       padding: 10px 15px;
       border-radius: 16px;
-      position: relative;
       word-wrap: break-word;
+      line-height: 1.4;
     }
 
     .sent {
@@ -194,26 +233,34 @@
       background: white;
       border-top: 1px solid #ccc;
       gap: 10px;
+      flex-shrink: 0;
     }
 
     #msg-input {
       flex: 1;
-      padding: 10px 15px;
-      border-radius: 20px;
+      padding: 12px 15px;
+      border-radius: 25px;
       border: 1px solid #ccc;
       outline: none;
+      font-size: 15px;
     }
 
     button[type="submit"] {
       background: #25D366;
       border: none;
       color: white;
-      padding: 10px 16px;
-      border-radius: 20px;
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
       cursor: pointer;
+      font-size: 16px;
+      flex-shrink: 0;
     }
 
-    /* ✅ Toast Notification */
+    .empty-chat {
+      padding: 20px;
+      color: #555;
+    }
 
     .toast {
       position: fixed;
@@ -225,128 +272,106 @@
       border-radius: 8px;
       z-index: 9999;
       box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-      animation: fadeIn 0.3s ease;
       font-size: 14px;
     }
 
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(-10px);
+    /* Tablet */
+    @media (max-width: 992px) {
+      .sidebar {
+        width: 280px;
       }
-      to {
-        opacity: 1;
-        transform: translateY(0);
+
+      .message-row {
+        max-width: 75%;
       }
     }
-  /* =========================
-   MOBILE RESPONSIVE DESIGN
-========================= */
 
-.mobile-menu-btn{
-  display:none;
-}
+    /* WhatsApp Mobile Layout */
+    @media (max-width: 768px) {
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
 
-/* Tablet */
-@media (max-width: 992px){
+      body {
+        display: block;
+      }
 
-  .sidebar{
-    width:260px;
-  }
+      .sidebar {
+        width: 100%;
+        height: 100dvh;
+        border-right: none;
+      }
 
-  .message-row{
-    max-width:75%;
-  }
+      .chat-window {
+        width: 100%;
+        height: 100dvh;
+      }
 
-}
+      .back-btn {
+        display: inline-flex;
+        align-items: center;
+      }
 
+      .top-bar {
+        height: 58px;
+        padding: 12px 14px;
+        background: #fff;
+      }
 
-/* Mobile */
-@media (max-width: 768px){
+      #chat-log {
+        padding: 12px;
+      }
 
-  body{
-    flex-direction: column;
-    height: 100vh;
-    overflow: hidden;
-  }
+      .message-row {
+        max-width: 82%;
+        font-size: 14px;
+        padding: 8px 12px;
+      }
 
-  /* Sidebar */
+      .input-area {
+        padding: 8px 10px;
+      }
 
-  .sidebar{
-    position: fixed;
-    left: -100%;
-    top: 0;
-    width: 80%;
-    height: 100vh;
-    z-index: 999;
-    transition: 0.3s;
-  }
+      #msg-input {
+        font-size: 16px;
+        padding: 11px 14px;
+      }
 
-  .sidebar.active{
-    left: 0;
-  }
+      button[type="submit"] {
+        width: 44px;
+        height: 44px;
+      }
 
-  /* Mobile top bar */
+      .dropdown {
+        left: auto;
+        right: 10px;
+      }
 
-  .top-bar{
-    padding: 12px;
-    font-size: 15px;
-  }
+      /* Mobile default: user list page */
+      body.no-chat .sidebar {
+        display: flex;
+      }
 
-  .mobile-menu-btn{
-    display:block;
-    background:none;
-    border:none;
-    font-size:22px;
-    cursor:pointer;
-    margin-right:10px;
-  }
+      body.no-chat .chat-window {
+        display: none;
+      }
 
-  .chat-window{
-    width:100%;
-    height:100vh;
-  }
+      /* Mobile after user click: chat page */
+      body.has-chat .sidebar {
+        display: none;
+      }
 
-  #chat-log{
-    padding: 12px;
-    padding-bottom: 90px;
-  }
-
-  .message-row{
-    max-width: 85%;
-    font-size: 14px;
-    padding: 8px 12px;
-  }
-
-  .input-area{
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    padding: 10px;
-    background: white;
-    z-index: 99;
-  }
-
-  #msg-input{
-    font-size:14px;
-  }
-
-  button[type="submit"]{
-    padding:10px 14px;
-  }
-
-  .dropdown{
-    left: auto;
-    right: 10px;
-    width: 200px;
-  }
-
-}
+      body.has-chat .chat-window {
+        display: flex;
+      }
+    }
   </style>
 </head>
 
-<body>
+<body class="{% if selected_user %}has-chat{% else %}no-chat{% endif %}">
 
   <div class="sidebar">
 
@@ -354,7 +379,6 @@
       <div>Chats</div>
 
       <div class="header-icons">
-
         <a href="{% url 'notifications' %}" class="notification-wrapper">
           <i class="fa-solid fa-bell"></i>
 
@@ -366,7 +390,6 @@
         <button class="menu-button" onclick="toggleMenu()">
           <i class="fa fa-bars"></i>
         </button>
-
       </div>
     </div>
 
@@ -382,29 +405,27 @@
     </div>
 
     <div id="user-list">
-
       {% for user in users %}
-      <a href="{% url 'chat_room' user.id %}"
-         class="user-link {% if selected_user and user.id == selected_user.id %}active-chat{% endif %}">
+        <a href="{% url 'chat_room' user.id %}"
+           class="user-link {% if selected_user and user.id == selected_user.id %}active-chat{% endif %}">
 
-        {% if user.profile.picture %}
-          <img src="{{ user.profile.picture.url }}">
-        {% else %}
-          <img src="{% static 'default_profile.png' %}">
-        {% endif %}
-
-        <span class="user-name">{{ user.username }}</span>
-
-        {% with unread=messages_unread|get_item:user.id %}
-          {% if unread|default:0 > 0 %}
-            <span class="notification-badge">{{ unread }}</span>
+          {% if user.profile.picture %}
+            <img src="{{ user.profile.picture.url }}">
+          {% else %}
+            <img src="{% static 'default_profile.png' %}">
           {% endif %}
-        {% endwith %}
 
-      </a>
+          <span class="user-name">{{ user.username }}</span>
+
+          {% with unread=messages_unread|get_item:user.id %}
+            {% if unread|default:0 > 0 %}
+              <span class="notification-badge">{{ unread }}</span>
+            {% endif %}
+          {% endwith %}
+        </a>
       {% endfor %}
-
     </div>
+
   </div>
 
   <div class="chat-window">
@@ -412,22 +433,22 @@
     {% if selected_user %}
 
       <div class="top-bar">
+        <a href="{% url 'chat_home' %}" class="back-btn">
+          <i class="fa-solid fa-arrow-left"></i>
+        </a>
         <div>{{ selected_user.username }}</div>
       </div>
 
       <div id="chat-log">
-
         {% for msg in messages %}
           <div class="message-row {% if msg.sender.id == request.user.id %}sent{% else %}received{% endif %}">
             {{ msg.content|linebreaksbr }}
             <div class="meta">{{ msg.timestamp|date:"H:i" }}</div>
           </div>
         {% endfor %}
-
       </div>
 
       <form method="POST" class="input-area" id="message-form">
-
         {% csrf_token %}
 
         <input
@@ -442,14 +463,13 @@
         <button type="submit">
           <i class="fa-solid fa-paper-plane"></i>
         </button>
-
       </form>
 
     {% else %}
 
       <div class="top-bar">Select a user to chat</div>
 
-      <div style="padding:20px;">
+      <div class="empty-chat">
         Click a user from the sidebar to start chatting.
       </div>
 
@@ -458,41 +478,33 @@
   </div>
 
 <script>
-
   function toggleMenu() {
     const menu = document.getElementById("dropdownMenu");
-
-    menu.style.display =
-      (menu.style.display === "block") ? "none" : "block";
+    menu.style.display = menu.style.display === "block" ? "none" : "block";
   }
 
   document.addEventListener("click", function (e) {
-
     const menu = document.getElementById("dropdownMenu");
     const button = document.querySelector(".menu-button");
 
-    if (!menu.contains(e.target) && !button.contains(e.target)) {
+    if (menu && button && !menu.contains(e.target) && !button.contains(e.target)) {
       menu.style.display = "none";
     }
-
   });
 
-  document.getElementById("user-search").addEventListener("input", function () {
+  const searchInput = document.getElementById("user-search");
 
-    const query = this.value.toLowerCase();
+  if (searchInput) {
+    searchInput.addEventListener("input", function () {
+      const query = this.value.toLowerCase();
+      const userLinks = document.querySelectorAll(".user-link");
 
-    const userLinks = document.querySelectorAll(".user-link");
-
-    userLinks.forEach(link => {
-
-      const name = link.textContent.toLowerCase();
-
-      link.style.display =
-        name.includes(query) ? "flex" : "none";
-
+      userLinks.forEach(link => {
+        const name = link.textContent.toLowerCase();
+        link.style.display = name.includes(query) ? "flex" : "none";
+      });
     });
-
-  });
+  }
 
   {% if selected_user %}
 
@@ -508,25 +520,18 @@
   );
 
   function scrollToBottom() {
-
     const chatLog = document.getElementById("chat-log");
-
-    chatLog.scrollTop = chatLog.scrollHeight;
-
+    if (chatLog) {
+      chatLog.scrollTop = chatLog.scrollHeight;
+    }
   }
 
   socket.onmessage = function (e) {
-
     const data = JSON.parse(e.data);
-
-    const isOwn =
-      data.sender_id === currentUserId;
+    const isOwn = data.sender_id === currentUserId;
 
     const row = document.createElement("div");
-
-    row.className =
-      "message-row " +
-      (isOwn ? "sent" : "received");
+    row.className = "message-row " + (isOwn ? "sent" : "received");
 
     row.innerHTML = `
       <div>${data.message}</div>
@@ -534,37 +539,28 @@
     `;
 
     document.getElementById("chat-log").appendChild(row);
-
     scrollToBottom();
-
   };
 
   document.getElementById("message-form").addEventListener("submit", function (e) {
-
     e.preventDefault();
 
     const input = document.getElementById("msg-input");
-
     const message = input.value.trim();
 
     if (message && socket.readyState === WebSocket.OPEN) {
-
       socket.send(JSON.stringify({
         message: message,
         receiver_id: chattingWithId
       }));
 
       input.value = "";
-
     }
-
   });
 
   scrollToBottom();
 
   {% endif %}
-
-  // ✅ Notification WebSocket
 
   const notificationSocket = new WebSocket(
     (window.location.protocol === "https:" ? "wss://" : "ws://") +
@@ -572,72 +568,36 @@
     "/ws/notifications/"
   );
 
-  notificationSocket.onopen = () => {
-    console.log("🔔 Notification WebSocket Connected");
-  };
-
   notificationSocket.onmessage = (e) => {
-
     const data = JSON.parse(e.data);
-
     console.log("🔔 Notification:", data);
 
-    // ✅ Update Bell Badge
-
-    const badge =
-      document.querySelector(".notification-wrapper .badge");
+    const badge = document.querySelector(".notification-wrapper .badge");
 
     if (badge) {
-
-      let count =
-        parseInt(badge.innerText || "0");
-
+      let count = parseInt(badge.innerText || "0");
       badge.innerText = count + 1;
-
       badge.style.display = "inline-block";
-
     } else {
-
-      const bell =
-        document.querySelector(".notification-wrapper");
-
-      const span =
-        document.createElement("span");
+      const bell = document.querySelector(".notification-wrapper");
+      const span = document.createElement("span");
 
       span.className = "badge";
-
       span.innerText = "1";
 
       bell.appendChild(span);
-
     }
 
-    // ✅ NON-BLOCKING TOAST
-    // ❌ alert() removed
-
     const toast = document.createElement("div");
-
     toast.className = "toast";
-
-    toast.innerText =
-      "📩 New message received";
+    toast.innerText = "📩 New message received";
 
     document.body.appendChild(toast);
 
     setTimeout(() => {
       toast.remove();
     }, 3000);
-
   };
-
-  notificationSocket.onerror = (e) => {
-    console.error("❌ Notification WebSocket Error:", e);
-  };
-
-  notificationSocket.onclose = () => {
-    console.log("🔕 Notification WebSocket Closed");
-  };
-
 </script>
 
 </body>
