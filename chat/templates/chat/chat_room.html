@@ -69,6 +69,8 @@
       font-size: 11px;
       padding: 2px 6px;
       border-radius: 50%;
+      min-width: 18px;
+      text-align: center;
     }
 
     .menu-button {
@@ -113,10 +115,6 @@
       color: #333;
       text-decoration: none;
       border-bottom: 1px solid #eee;
-    }
-
-    .dropdown a:hover {
-      background-color: #f9f9f9;
     }
 
     #user-list {
@@ -273,9 +271,9 @@
       z-index: 9999;
       box-shadow: 0 4px 10px rgba(0,0,0,0.2);
       font-size: 14px;
+      max-width: 280px;
     }
 
-    /* Tablet */
     @media (max-width: 992px) {
       .sidebar {
         width: 280px;
@@ -286,7 +284,6 @@
       }
     }
 
-    /* WhatsApp Mobile Layout */
     @media (max-width: 768px) {
       html,
       body {
@@ -350,7 +347,6 @@
         right: 10px;
       }
 
-      /* Mobile default: user list page */
       body.no-chat .sidebar {
         display: flex;
       }
@@ -359,7 +355,6 @@
         display: none;
       }
 
-      /* Mobile after user click: chat page */
       body.has-chat .sidebar {
         display: none;
       }
@@ -418,10 +413,15 @@
           <span class="user-name">{{ user.username }}</span>
 
           {% with unread=messages_unread|get_item:user.id %}
-            {% if unread|default:0 > 0 %}
-              <span class="notification-badge">{{ unread }}</span>
-            {% endif %}
+            <span
+              id="notify-{{ user.id }}"
+              class="notification-badge"
+              {% if unread|default:0 == 0 %}style="display:none;"{% endif %}
+            >
+              {{ unread|default:0 }}
+            </span>
           {% endwith %}
+
         </a>
       {% endfor %}
     </div>
@@ -478,6 +478,15 @@
   </div>
 
 <script>
+  const currentUserId = {{ request.user.id }};
+  const activeChatUserId = {% if selected_user %}{{ selected_user.id }}{% else %}null{% endif %};
+
+  function escapeHtml(text) {
+    const div = document.createElement("div");
+    div.innerText = text;
+    return div.innerHTML;
+  }
+
   function toggleMenu() {
     const menu = document.getElementById("dropdownMenu");
     menu.style.display = menu.style.display === "block" ? "none" : "block";
@@ -506,19 +515,6 @@
     });
   }
 
-  {% if selected_user %}
-
-  const currentUserId = {{ request.user.id }};
-  const chattingWithId = {{ selected_user.id }};
-
-  let socket = new WebSocket(
-    (window.location.protocol === "https:" ? "wss://" : "ws://") +
-    window.location.host +
-    "/ws/chat/" +
-    chattingWithId +
-    "/"
-  );
-
   function scrollToBottom() {
     const chatLog = document.getElementById("chat-log");
     if (chatLog) {
@@ -526,37 +522,55 @@
     }
   }
 
+  {% if selected_user %}
+
+  const socket = new WebSocket(
+    (window.location.protocol === "https:" ? "wss://" : "ws://") +
+    window.location.host +
+    "/ws/chat/" +
+    activeChatUserId +
+    "/"
+  );
+
   socket.onmessage = function (e) {
     const data = JSON.parse(e.data);
-    const isOwn = data.sender_id === currentUserId;
+
+    const isOwn = Number(data.sender_id) === Number(currentUserId);
 
     const row = document.createElement("div");
     row.className = "message-row " + (isOwn ? "sent" : "received");
 
     row.innerHTML = `
-      <div>${data.message}</div>
-      <div class="meta">${data.timestamp}</div>
+      <div>${escapeHtml(data.message)}</div>
+      <div class="meta">${escapeHtml(data.timestamp)}</div>
     `;
 
-    document.getElementById("chat-log").appendChild(row);
-    scrollToBottom();
+    const chatLog = document.getElementById("chat-log");
+    if (chatLog) {
+      chatLog.appendChild(row);
+      scrollToBottom();
+    }
   };
 
-  document.getElementById("message-form").addEventListener("submit", function (e) {
-    e.preventDefault();
+  const messageForm = document.getElementById("message-form");
 
-    const input = document.getElementById("msg-input");
-    const message = input.value.trim();
+  if (messageForm) {
+    messageForm.addEventListener("submit", function (e) {
+      e.preventDefault();
 
-    if (message && socket.readyState === WebSocket.OPEN) {
-      socket.send(JSON.stringify({
-        message: message,
-        receiver_id: chattingWithId
-      }));
+      const input = document.getElementById("msg-input");
+      const message = input.value.trim();
 
-      input.value = "";
-    }
-  });
+      if (message && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({
+          message: message,
+          receiver_id: activeChatUserId
+        }));
+
+        input.value = "";
+      }
+    });
+  }
 
   scrollToBottom();
 
@@ -570,33 +584,55 @@
 
   notificationSocket.onmessage = (e) => {
     const data = JSON.parse(e.data);
-    console.log("🔔 Notification:", data);
 
-    const badge = document.querySelector(".notification-wrapper .badge");
+    const senderId = Number(data.sender_id);
 
-    if (badge) {
-      let count = parseInt(badge.innerText || "0");
-      badge.innerText = count + 1;
-      badge.style.display = "inline-block";
-    } else {
-      const bell = document.querySelector(".notification-wrapper");
-      const span = document.createElement("span");
+    if (senderId && senderId !== Number(activeChatUserId)) {
+      const userBadge = document.getElementById(`notify-${senderId}`);
 
-      span.className = "badge";
-      span.innerText = "1";
+      if (userBadge) {
+        let count = parseInt(userBadge.innerText || "0");
+        userBadge.innerText = count + 1;
+        userBadge.style.display = "inline-block";
+      }
 
-      bell.appendChild(span);
+      const toast = document.createElement("div");
+      toast.className = "toast";
+      toast.innerText = data.sender_username
+        ? `💬 ${data.sender_username}: ${data.message}`
+        : "📩 New message received";
+
+      document.body.appendChild(toast);
+
+      setTimeout(() => {
+        toast.remove();
+      }, 3000);
     }
 
-    const toast = document.createElement("div");
-    toast.className = "toast";
-    toast.innerText = "📩 New message received";
+    const bellBadge = document.querySelector(".notification-wrapper .badge");
 
-    document.body.appendChild(toast);
+    if (bellBadge) {
+      let count = parseInt(bellBadge.innerText || "0");
+      bellBadge.innerText = count + 1;
+      bellBadge.style.display = "inline-block";
+    } else {
+      const bell = document.querySelector(".notification-wrapper");
 
-    setTimeout(() => {
-      toast.remove();
-    }, 3000);
+      if (bell) {
+        const span = document.createElement("span");
+        span.className = "badge";
+        span.innerText = "1";
+        bell.appendChild(span);
+      }
+    }
+  };
+
+  notificationSocket.onerror = function (e) {
+    console.error("Notification socket error:", e);
+  };
+
+  notificationSocket.onclose = function () {
+    console.log("Notification socket closed");
   };
 </script>
 
