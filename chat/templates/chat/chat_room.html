@@ -569,48 +569,24 @@
   );
 
   notificationSocket.onmessage = (e) => {
-  const data = JSON.parse(e.data);
-  console.log("🔔 Notification:", data);
+    const data = JSON.parse(e.data);
+    console.log("🔔 Notification:", data);
 
-  const senderId = data.sender_id;
+    const badge = document.querySelector(".notification-wrapper .badge");
 
-  if (senderId && senderId !== chattingWithId) {
-    const userBadge = document.getElementById(`notify-${senderId}`);
+    if (badge) {
+      let count = parseInt(badge.innerText || "0");
+      badge.innerText = count + 1;
+      badge.style.display = "inline-block";
+    } else {
+      const bell = document.querySelector(".notification-wrapper");
+      const span = document.createElement("span");
 
-    if (userBadge) {
-      let count = parseInt(userBadge.innerText || "0");
-      userBadge.innerText = count + 1;
-      userBadge.style.display = "inline-block";
+      span.className = "badge";
+      span.innerText = "1";
+
+      bell.appendChild(span);
     }
-  }
-
-  const bellBadge = document.querySelector(".notification-wrapper .badge");
-
-  if (bellBadge) {
-    let count = parseInt(bellBadge.innerText || "0");
-    bellBadge.innerText = count + 1;
-    bellBadge.style.display = "inline-block";
-  } else {
-    const bell = document.querySelector(".notification-wrapper");
-    const span = document.createElement("span");
-    span.className = "badge";
-    span.innerText = "1";
-    bell.appendChild(span);
-  }
-
-  const toast = document.createElement("div");
-  toast.className = "toast";
-  toast.innerText = data.sender_username
-    ? `💬 ${data.sender_username}: ${data.message}`
-    : "📩 New notification";
-
-  document.body.appendChild(toast);
-
-  setTimeout(() => {
-    toast.remove();
-  }, 3000);
-};
- 
 
     const toast = document.createElement("div");
     toast.className = "toast";
