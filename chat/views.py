@@ -15,6 +15,7 @@ from .models import Profile
 from .models import FriendRequest
 from .utils import send_alert_to_user 
 from django.views.decorators.http import require_POST
+from django.http import JsonResponse
 
 
 def register_view(request):
@@ -201,11 +202,57 @@ def notifications(request):
     return render(request, 'chat/notifications.html', {'requests': requests})
 
 @login_required
+@login_required
 def accept_request(request, req_id):
     req = get_object_or_404(FriendRequest, id=req_id, to_user=request.user)
     req.is_accepted = True
     req.save()
-    return redirect('notifications')
+
+    from_user = req.from_user
+    to_user = request.user
+
+    def get_picture(user):
+        try:
+            if user.profile.picture:
+                return user.profile.picture.url
+        except:
+            pass
+        return "/static/default_profile.png"
+
+    channel_layer = get_channel_layer()
+
+    async_to_sync(channel_layer.group_send)(
+        f"notify_{to_user.id}",
+        {
+            "type": "notify_message",
+            "event": "friend_accepted",
+            "friend_id": from_user.id,
+            "friend_username": from_user.username,
+            "friend_picture": get_picture(from_user),
+        }
+    )
+
+    async_to_sync(channel_layer.group_send)(
+        f"notify_{from_user.id}",
+        {
+            "type": "notify_message",
+            "event": "friend_accepted",
+            "friend_id": to_user.id,
+            "friend_username": to_user.username,
+            "friend_picture": get_picture(to_user),
+        }
+    )
+
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        return JsonResponse({
+            "status": "success",
+            "message": "Friend request accepted",
+            "friend_id": from_user.id,
+            "friend_username": from_user.username,
+            "friend_picture": get_picture(from_user),
+        })
+
+    return redirect("notifications")
 
 def send_alert_to_user(user_id, message):
     channel_layer = get_channel_layer()

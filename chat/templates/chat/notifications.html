@@ -96,7 +96,11 @@
       {% endif %}
       <span>{{ req.from_user.username }}</span>
     </div>
-    <a href="{% url 'accept_request' req.id %}" class="accept-button">Accept</a>
+    <button
+  class="accept-button accept-request-btn"
+  data-url="{% url 'accept_request' req.id %}">
+  Accept
+</button>
   </div>
   {% empty %}
   <p class="no-requests">No pending requests.</p>
@@ -107,6 +111,53 @@
       const dot = document.getElementById("heart-dot");
       if (dot) dot.style.display = "none";
     });
+
+    function getCookie(name) {
+    let cookieValue = null;
+
+    if (document.cookie && document.cookie !== "") {
+      const cookies = document.cookie.split(";");
+
+      for (let cookie of cookies) {
+        cookie = cookie.trim();
+
+        if (cookie.substring(0, name.length + 1) === name + "=") {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+
+    return cookieValue;
+  }
+
+  document.querySelectorAll(".accept-request-btn").forEach(button => {
+    button.addEventListener("click", function () {
+      const url = this.dataset.url;
+      const card = this.closest(".user-card");
+
+      fetch(url, {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": getCookie("csrftoken"),
+          "X-Requested-With": "XMLHttpRequest"
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === "success") {
+          card.remove();
+
+          if (document.querySelectorAll(".user-card").length === 0) {
+            document.body.insertAdjacentHTML(
+              "beforeend",
+              '<p class="no-requests">No pending requests.</p>'
+            );
+          }
+        }
+      });
+    });
+  });
   </script>
 
 

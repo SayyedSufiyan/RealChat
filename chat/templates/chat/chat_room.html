@@ -402,6 +402,7 @@
     <div id="user-list">
       {% for user in users %}
         <a href="{% url 'chat_room' user.id %}"
+          id="user-link-{{ user.id }}"
            class="user-link {% if selected_user and user.id == selected_user.id %}active-chat{% endif %}">
 
           {% if user.profile.picture %}
@@ -584,6 +585,27 @@
 
   notificationSocket.onmessage = (e) => {
     const data = JSON.parse(e.data);
+    if (data.event === "friend_accepted") {
+  const userList = document.getElementById("user-list");
+
+  if (!document.getElementById(`user-link-${data.friend_id}`)) {
+    const newUser = document.createElement("a");
+
+    newUser.href = `/chat/${data.friend_id}/`;
+    newUser.id = `user-link-${data.friend_id}`;
+    newUser.className = "user-link";
+
+    newUser.innerHTML = `
+      <img src="${data.friend_picture}" alt="Profile">
+      <span class="user-name">${data.friend_username}</span>
+      <span id="notify-${data.friend_id}" class="notification-badge" style="display:none;">0</span>
+    `;
+
+    userList.appendChild(newUser);
+  }
+
+  return;
+}
 
     const senderId = Number(data.sender_id);
 
