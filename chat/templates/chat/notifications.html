@@ -96,11 +96,9 @@
       {% endif %}
       <span>{{ req.from_user.username }}</span>
     </div>
-    <button
-  class="accept-button accept-request-btn"
-  data-url="{% url 'accept_request' req.id %}">
+    <a href="{% url 'accept_request' req.id %}" class="accept-button">
   Accept
-</button>
+</a>
   </div>
   {% empty %}
   <p class="no-requests">No pending requests.</p>

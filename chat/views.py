@@ -202,35 +202,42 @@ def notifications(request):
     return render(request, 'chat/notifications.html', {'requests': requests})
 
 @login_required
-@login_required
 def accept_request(request, req_id):
-    req = get_object_or_404(FriendRequest, id=req_id, to_user=request.user)
+
+    req = get_object_or_404(
+        FriendRequest,
+        id=req_id,
+        to_user=request.user
+    )
+
     req.is_accepted = True
     req.save()
 
     from_user = req.from_user
     to_user = request.user
 
+    # ----------------------------
+    # PROFILE PICTURE FUNCTION
+    # ----------------------------
+
     def get_picture(user):
+
         try:
+
             if user.profile.picture:
                 return user.profile.picture.url
-        except:
-            pass
+
+        except Exception as e:
+
+            print("Profile picture error:", e)
+
         return "/static/default_profile.png"
 
-    channel_layer = get_channel_layer()
+    # ----------------------------
+    # REALTIME NOTIFICATION
+    # ----------------------------
 
-    async_to_sync(channel_layer.group_send)(
-        f"notify_{to_user.id}",
-        {
-            "type": "notify_message",
-            "event": "friend_accepted",
-            "friend_id": from_user.id,
-            "friend_username": from_user.username,
-            "friend_picture": get_picture(from_user),
-        }
-    )
+    channel_layer = get_channel_layer()
 
     async_to_sync(channel_layer.group_send)(
         f"notify_{from_user.id}",
@@ -243,16 +250,25 @@ def accept_request(request, req_id):
         }
     )
 
-    if request.headers.get("x-requested-with") == "XMLHttpRequest":
-        return JsonResponse({
-            "status": "success",
-            "message": "Friend request accepted",
+    async_to_sync(channel_layer.group_send)(
+        f"notify_{to_user.id}",
+        {
+            "type": "notify_message",
+            "event": "friend_accepted",
             "friend_id": from_user.id,
             "friend_username": from_user.username,
             "friend_picture": get_picture(from_user),
-        })
+        }
+    )
 
-    return redirect("notifications")
+    # ----------------------------
+    # MOBILE DIRECT CHAT OPEN
+    # ----------------------------
+
+    return redirect(
+        "chat_room",
+        user_id=from_user.id
+    )
 
 def send_alert_to_user(user_id, message):
     channel_layer = get_channel_layer()
