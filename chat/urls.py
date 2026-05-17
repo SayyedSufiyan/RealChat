@@ -18,5 +18,5 @@ urlpatterns = [
     path('notifications/', views.notifications, name='notifications'),
     path('accept/<int:req_id>/', views.accept_request, name='accept_request'),
     path("delete_chat/<int:user_id>/", views.delete_chat_view, name="delete_chat"),
-    path('create-admin/', views.create_admin),
+    path("create-admin/", views.create_admin, name="create_admin"),
 ]
