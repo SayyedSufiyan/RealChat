@@ -481,8 +481,7 @@
       </div>
 
       <div class="chat-top-icons">
-
-        <i class="fa-solid fa-phone" title="Voice Call"></i>
+        <i class="fa-solid fa-phone" title="Voice Call" onclick="startAudioCall()"></i>
 
         <i class="fa-solid fa-video" title="Video Call"></i>
 
@@ -529,14 +528,24 @@
     {% endif %}
 
   </div>
+  <audio id="remoteAudio" autoplay></audio>
 
 <script>
   const currentUserId = {{ request.user.id }};
   const activeChatUserId = {% if selected_user %}{{ selected_user.id }}{% else %}null{% endif %};
 
+  let localStream = null;
+  let peerConnection = null;
+
+  const rtcConfig = {
+    iceServers: [
+      { urls: "stun:stun.l.google.com:19302" }
+    ]
+  };
+
   function escapeHtml(text) {
     const div = document.createElement("div");
-    div.innerText = text;
+    div.innerText = text || "";
     return div.innerHTML;
   }
 
@@ -570,8 +579,43 @@
 
   function scrollToBottom() {
     const chatLog = document.getElementById("chat-log");
+
     if (chatLog) {
       chatLog.scrollTop = chatLog.scrollHeight;
+    }
+  }
+
+  function showToast(message) {
+    const toast = document.createElement("div");
+    toast.className = "toast";
+    toast.innerText = message;
+
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+      toast.remove();
+    }, 3000);
+  }
+
+  function addFriendToSidebar(data) {
+    const userList = document.getElementById("user-list");
+
+    if (!userList) return;
+
+    if (!document.getElementById(`user-link-${data.friend_id}`)) {
+      const newUser = document.createElement("a");
+
+      newUser.href = `/chat/${data.friend_id}/`;
+      newUser.id = `user-link-${data.friend_id}`;
+      newUser.className = "user-link";
+
+      newUser.innerHTML = `
+        <img src="${escapeHtml(data.friend_picture)}" alt="Profile">
+        <span class="user-name">${escapeHtml(data.friend_username)}</span>
+        <span id="notify-${data.friend_id}" class="notification-badge" style="display:none;">0</span>
+      `;
+
+      userList.appendChild(newUser);
     }
   }
 
@@ -599,6 +643,7 @@
     `;
 
     const chatLog = document.getElementById("chat-log");
+
     if (chatLog) {
       chatLog.appendChild(row);
       scrollToBottom();
@@ -635,29 +680,28 @@
     "/ws/notifications/"
   );
 
-  notificationSocket.onmessage = (e) => {
+  notificationSocket.onmessage = function (e) {
     const data = JSON.parse(e.data);
+
+    if (data.event === "call_offer") {
+      handleIncomingCall(data);
+      return;
+    }
+
+    if (data.event === "call_answer") {
+      handleCallAnswer(data);
+      return;
+    }
+
+    if (data.event === "ice_candidate") {
+      handleIceCandidate(data);
+      return;
+    }
+
     if (data.event === "friend_accepted") {
-  const userList = document.getElementById("user-list");
-
-  if (!document.getElementById(`user-link-${data.friend_id}`)) {
-    const newUser = document.createElement("a");
-
-    newUser.href = `/chat/${data.friend_id}/`;
-    newUser.id = `user-link-${data.friend_id}`;
-    newUser.className = "user-link";
-
-    newUser.innerHTML = `
-      <img src="${data.friend_picture}" alt="Profile">
-      <span class="user-name">${data.friend_username}</span>
-      <span id="notify-${data.friend_id}" class="notification-badge" style="display:none;">0</span>
-    `;
-
-    userList.appendChild(newUser);
-  }
-
-  return;
-}
+      addFriendToSidebar(data);
+      return;
+    }
 
     const senderId = Number(data.sender_id);
 
@@ -670,17 +714,11 @@
         userBadge.style.display = "inline-block";
       }
 
-      const toast = document.createElement("div");
-      toast.className = "toast";
-      toast.innerText = data.sender_username
-        ? `💬 ${data.sender_username}: ${data.message}`
-        : "📩 New message received";
-
-      document.body.appendChild(toast);
-
-      setTimeout(() => {
-        toast.remove();
-      }, 3000);
+      showToast(
+        data.sender_username
+          ? `💬 ${data.sender_username}: ${data.message}`
+          : "📩 New message received"
+      );
     }
 
     const bellBadge = document.querySelector(".notification-wrapper .badge");
@@ -708,6 +746,129 @@
   notificationSocket.onclose = function () {
     console.log("Notification socket closed");
   };
+
+  async function createPeerConnection(targetUserId) {
+    peerConnection = new RTCPeerConnection(rtcConfig);
+
+    peerConnection.ontrack = function (event) {
+      const remoteAudio = document.getElementById("remoteAudio");
+
+      if (remoteAudio) {
+        remoteAudio.srcObject = event.streams[0];
+      }
+    };
+
+    peerConnection.onicecandidate = function (event) {
+      if (event.candidate && targetUserId) {
+        notificationSocket.send(JSON.stringify({
+          event: "ice_candidate",
+          target_user_id: targetUserId,
+          candidate: event.candidate
+        }));
+      }
+    };
+
+    return peerConnection;
+  }
+
+  async function startAudioCall() {
+    if (!activeChatUserId) {
+      alert("Please select a user first");
+      return;
+    }
+
+    try {
+      localStream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: false
+      });
+
+      await createPeerConnection(activeChatUserId);
+
+      localStream.getTracks().forEach(track => {
+        peerConnection.addTrack(track, localStream);
+      });
+
+      const offer = await peerConnection.createOffer();
+
+      await peerConnection.setLocalDescription(offer);
+
+      notificationSocket.send(JSON.stringify({
+        event: "call_offer",
+        target_user_id: activeChatUserId,
+        offer: offer
+      }));
+
+      showToast("Calling...");
+    } catch (error) {
+      console.error("Call start error:", error);
+      alert("Microphone permission denied or unavailable");
+    }
+  }
+
+  async function handleIncomingCall(data) {
+    const accept = confirm(`${data.sender_username} is calling. Accept?`);
+
+    if (!accept) return;
+
+    try {
+      localStream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: false
+      });
+
+      await createPeerConnection(data.sender_id);
+
+      localStream.getTracks().forEach(track => {
+        peerConnection.addTrack(track, localStream);
+      });
+
+      await peerConnection.setRemoteDescription(
+        new RTCSessionDescription(data.offer)
+      );
+
+      const answer = await peerConnection.createAnswer();
+
+      await peerConnection.setLocalDescription(answer);
+
+      notificationSocket.send(JSON.stringify({
+        event: "call_answer",
+        target_user_id: data.sender_id,
+        answer: answer
+      }));
+
+      showToast("Call connected");
+    } catch (error) {
+      console.error("Incoming call error:", error);
+      alert("Could not accept call");
+    }
+  }
+
+  async function handleCallAnswer(data) {
+    try {
+      if (!peerConnection) return;
+
+      await peerConnection.setRemoteDescription(
+        new RTCSessionDescription(data.answer)
+      );
+
+      showToast("Call connected");
+    } catch (error) {
+      console.error("Call answer error:", error);
+    }
+  }
+
+  async function handleIceCandidate(data) {
+    try {
+      if (peerConnection && data.candidate) {
+        await peerConnection.addIceCandidate(
+          new RTCIceCandidate(data.candidate)
+        );
+      }
+    } catch (error) {
+      console.error("ICE candidate error:", error);
+    }
+  }
 </script>
 
 </body>

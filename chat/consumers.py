@@ -126,9 +126,30 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             self.channel_name
         )
 
+    async def receive(self, text_data):
+        data = json.loads(text_data)
+
+        event = data.get("event")
+        target_user_id = data.get("target_user_id")
+
+        if not event or not target_user_id:
+            return
+
+        await self.channel_layer.group_send(
+            f"notify_{target_user_id}",
+            {
+                "type": "notify_message",
+                "event": event,
+                "sender_id": self.user.id,
+                "sender_username": self.user.username,
+                "offer": data.get("offer"),
+                "answer": data.get("answer"),
+                "candidate": data.get("candidate"),
+            }
+        )
+
     async def notify_message(self, event):
         await self.send(text_data=json.dumps(event))
-
 
 class AlertConsumer(AsyncWebsocketConsumer):
     async def connect(self):
