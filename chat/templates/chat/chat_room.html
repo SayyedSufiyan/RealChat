@@ -362,6 +362,43 @@
       body.has-chat .chat-window {
         display: flex;
       }
+
+      .chat-user-info {
+  flex: 1;
+  font-size: 16px;
+  font-weight: 600;
+  color: #111b21;
+}
+
+.chat-top-icons {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  font-size: 19px;
+  color: #54656f;
+}
+
+.chat-top-icons i {
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.chat-top-icons i:hover {
+  color: #25D366;
+}
+
+@media (max-width:768px){
+
+  .chat-top-icons{
+    gap:16px;
+    font-size:18px;
+  }
+
+  .chat-user-info{
+    font-size:15px;
+  }
+}
     }
   </style>
 </head>
@@ -434,11 +471,26 @@
     {% if selected_user %}
 
       <div class="top-bar">
-        <a href="{% url 'chat_home' %}" class="back-btn">
-          <i class="fa-solid fa-arrow-left"></i>
-        </a>
-        <div>{{ selected_user.username }}</div>
+
+      <a href="{% url 'chat_home' %}" class="back-btn">
+        <i class="fa-solid fa-arrow-left"></i>
+      </a>
+
+      <div class="chat-user-info">
+        {{ selected_user.username }}
       </div>
+
+      <div class="chat-top-icons">
+
+        <i class="fa-solid fa-phone" title="Voice Call"></i>
+
+        <i class="fa-solid fa-video" title="Video Call"></i>
+
+        <i class="fa-solid fa-ellipsis-vertical" title="More"></i>
+
+      </div>
+
+    </div>
 
       <div id="chat-log">
         {% for msg in messages %}
