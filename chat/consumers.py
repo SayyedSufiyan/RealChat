@@ -6,7 +6,6 @@ from asgiref.sync import sync_to_async
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.user = self.scope["user"]
-        self.room_group_name = None
 
         if not self.user.is_authenticated:
             await self.close()
@@ -27,17 +26,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.accept()
 
     async def disconnect(self, close_code):
-        if self.room_group_name:
-            await self.channel_layer.group_discard(
-                self.room_group_name,
-                self.channel_name
-            )
+        await self.channel_layer.group_discard(
+            self.room_group_name,
+            self.channel_name
+        )
 
     async def receive(self, text_data):
-        try:
-            data = json.loads(text_data)
-        except json.JSONDecodeError:
-            return
+        data = json.loads(text_data)
 
         if data.get("type") == "heartbeat":
             return
@@ -60,7 +55,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
             self.room_group_name,
             {
                 "type": "chat_message",
-                "event": "chat_message",
                 "message": message,
                 "sender_id": sender.id,
                 "sender_username": sender.username,
@@ -112,7 +106,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
 class NotificationConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.user = self.scope["user"]
-        self.group_name = None
 
         if not self.user.is_authenticated:
             await self.close()
@@ -128,33 +121,18 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         await self.accept()
 
     async def disconnect(self, close_code):
-        if self.group_name:
-            await self.channel_layer.group_discard(
-                self.group_name,
-                self.channel_name
-            )
+        await self.channel_layer.group_discard(
+            self.group_name,
+            self.channel_name
+        )
 
     async def receive(self, text_data):
-        try:
-            data = json.loads(text_data)
-        except json.JSONDecodeError:
-            return
+        data = json.loads(text_data)
 
         event = data.get("event")
         target_user_id = data.get("target_user_id")
 
         if not event or not target_user_id:
-            return
-
-        allowed_events = [
-            "call_offer",
-            "call_answer",
-            "ice_candidate",
-            "call_end",
-            "call_rejected"
-        ]
-
-        if event not in allowed_events:
             return
 
         await self.channel_layer.group_send(
@@ -173,11 +151,9 @@ class NotificationConsumer(AsyncWebsocketConsumer):
     async def notify_message(self, event):
         await self.send(text_data=json.dumps(event))
 
-
 class AlertConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.user = self.scope["user"]
-        self.group_name = None
 
         if not self.user.is_authenticated:
             await self.close()
@@ -193,11 +169,10 @@ class AlertConsumer(AsyncWebsocketConsumer):
         await self.accept()
 
     async def disconnect(self, close_code):
-        if self.group_name:
-            await self.channel_layer.group_discard(
-                self.group_name,
-                self.channel_name
-            )
+        await self.channel_layer.group_discard(
+            self.group_name,
+            self.channel_name
+        )
 
     async def send_alert(self, event):
         await self.send(text_data=json.dumps({
