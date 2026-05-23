@@ -529,6 +529,8 @@
 
   </div>
   <audio id="remoteAudio" autoplay></audio>
+  <video id="localVideo" autoplay muted playsinline></video>
+  <video id="remoteVideo" autoplay playsinline></video>
 
 <script>
   const currentUserId = {{ request.user.id }};
@@ -549,9 +551,25 @@
     return div.innerHTML;
   }
 
+  function showToast(message) {
+    const toast = document.createElement("div");
+    toast.className = "toast";
+    toast.innerText = message;
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+      toast.remove();
+    }, 3000);
+  }
+
   function toggleMenu() {
     const menu = document.getElementById("dropdownMenu");
     menu.style.display = menu.style.display === "block" ? "none" : "block";
+  }
+
+  function scrollToBottom() {
+    const chatLog = document.getElementById("chat-log");
+    if (chatLog) chatLog.scrollTop = chatLog.scrollHeight;
   }
 
   document.addEventListener("click", function (e) {
@@ -568,59 +586,14 @@
   if (searchInput) {
     searchInput.addEventListener("input", function () {
       const query = this.value.toLowerCase();
-      const userLinks = document.querySelectorAll(".user-link");
-
-      userLinks.forEach(link => {
+      document.querySelectorAll(".user-link").forEach(link => {
         const name = link.textContent.toLowerCase();
         link.style.display = name.includes(query) ? "flex" : "none";
       });
     });
   }
 
-  function scrollToBottom() {
-    const chatLog = document.getElementById("chat-log");
-
-    if (chatLog) {
-      chatLog.scrollTop = chatLog.scrollHeight;
-    }
-  }
-
-  function showToast(message) {
-    const toast = document.createElement("div");
-    toast.className = "toast";
-    toast.innerText = message;
-
-    document.body.appendChild(toast);
-
-    setTimeout(() => {
-      toast.remove();
-    }, 3000);
-  }
-
-  function addFriendToSidebar(data) {
-    const userList = document.getElementById("user-list");
-
-    if (!userList) return;
-
-    if (!document.getElementById(`user-link-${data.friend_id}`)) {
-      const newUser = document.createElement("a");
-
-      newUser.href = `/chat/${data.friend_id}/`;
-      newUser.id = `user-link-${data.friend_id}`;
-      newUser.className = "user-link";
-
-      newUser.innerHTML = `
-        <img src="${escapeHtml(data.friend_picture)}" alt="Profile">
-        <span class="user-name">${escapeHtml(data.friend_username)}</span>
-        <span id="notify-${data.friend_id}" class="notification-badge" style="display:none;">0</span>
-      `;
-
-      userList.appendChild(newUser);
-    }
-  }
-
   {% if selected_user %}
-
   const socket = new WebSocket(
     (window.location.protocol === "https:" ? "wss://" : "ws://") +
     window.location.host +
@@ -631,7 +604,6 @@
 
   socket.onmessage = function (e) {
     const data = JSON.parse(e.data);
-
     const isOwn = Number(data.sender_id) === Number(currentUserId);
 
     const row = document.createElement("div");
@@ -671,7 +643,6 @@
   }
 
   scrollToBottom();
-
   {% endif %}
 
   const notificationSocket = new WebSocket(
@@ -698,6 +669,18 @@
       return;
     }
 
+    if (data.event === "call_end") {
+      endCall(false);
+      showToast("Call ended");
+      return;
+    }
+
+    if (data.event === "call_rejected") {
+      endCall(false);
+      showToast("Call rejected");
+      return;
+    }
+
     if (data.event === "friend_accepted") {
       addFriendToSidebar(data);
       return;
@@ -720,42 +703,37 @@
           : "📩 New message received"
       );
     }
+  };
 
-    const bellBadge = document.querySelector(".notification-wrapper .badge");
+  function addFriendToSidebar(data) {
+    const userList = document.getElementById("user-list");
+    if (!userList) return;
 
-    if (bellBadge) {
-      let count = parseInt(bellBadge.innerText || "0");
-      bellBadge.innerText = count + 1;
-      bellBadge.style.display = "inline-block";
-    } else {
-      const bell = document.querySelector(".notification-wrapper");
+    if (!document.getElementById(`user-link-${data.friend_id}`)) {
+      const newUser = document.createElement("a");
 
-      if (bell) {
-        const span = document.createElement("span");
-        span.className = "badge";
-        span.innerText = "1";
-        bell.appendChild(span);
-      }
+      newUser.href = `/chat/${data.friend_id}/`;
+      newUser.id = `user-link-${data.friend_id}`;
+      newUser.className = "user-link";
+
+      newUser.innerHTML = `
+        <img src="${escapeHtml(data.friend_picture)}" alt="Profile">
+        <span class="user-name">${escapeHtml(data.friend_username)}</span>
+        <span id="notify-${data.friend_id}" class="notification-badge" style="display:none;">0</span>
+      `;
+
+      userList.appendChild(newUser);
     }
-  };
-
-  notificationSocket.onerror = function (e) {
-    console.error("Notification socket error:", e);
-  };
-
-  notificationSocket.onclose = function () {
-    console.log("Notification socket closed");
-  };
+  }
 
   async function createPeerConnection(targetUserId) {
     peerConnection = new RTCPeerConnection(rtcConfig);
 
     peerConnection.ontrack = function (event) {
-      const remoteAudio = document.getElementById("remoteAudio");
-
-      if (remoteAudio) {
-        remoteAudio.srcObject = event.streams[0];
-      }
+      const remoteVideo = document.getElementById("remoteVideo");
+      if (remoteVideo) {
+        remoteVideo.srcObject = event.streams[0];
+}
     };
 
     peerConnection.onicecandidate = function (event) {
@@ -779,8 +757,9 @@
 
     try {
       localStream = await navigator.mediaDevices.getUserMedia({
+        document.getElementById("localVideo").srcObject = localStream;
         audio: true,
-        video: false
+        video: true
       });
 
       await createPeerConnection(activeChatUserId);
@@ -790,7 +769,6 @@
       });
 
       const offer = await peerConnection.createOffer();
-
       await peerConnection.setLocalDescription(offer);
 
       notificationSocket.send(JSON.stringify({
@@ -809,10 +787,17 @@
   async function handleIncomingCall(data) {
     const accept = confirm(`${data.sender_username} is calling. Accept?`);
 
-    if (!accept) return;
+    if (!accept) {
+      notificationSocket.send(JSON.stringify({
+        event: "call_rejected",
+        target_user_id: data.sender_id
+      }));
+      return;
+    }
 
     try {
       localStream = await navigator.mediaDevices.getUserMedia({
+        document.getElementById("localVideo").srcObject = localStream;
         audio: true,
         video: false
       });
@@ -828,7 +813,6 @@
       );
 
       const answer = await peerConnection.createAnswer();
-
       await peerConnection.setLocalDescription(answer);
 
       notificationSocket.send(JSON.stringify({
@@ -845,17 +829,13 @@
   }
 
   async function handleCallAnswer(data) {
-    try {
-      if (!peerConnection) return;
+    if (!peerConnection) return;
 
-      await peerConnection.setRemoteDescription(
-        new RTCSessionDescription(data.answer)
-      );
+    await peerConnection.setRemoteDescription(
+      new RTCSessionDescription(data.answer)
+    );
 
-      showToast("Call connected");
-    } catch (error) {
-      console.error("Call answer error:", error);
-    }
+    showToast("Call connected");
   }
 
   async function handleIceCandidate(data) {
@@ -867,6 +847,30 @@
       }
     } catch (error) {
       console.error("ICE candidate error:", error);
+    }
+  }
+
+  function endCall(sendSignal = true) {
+    if (sendSignal && activeChatUserId) {
+      notificationSocket.send(JSON.stringify({
+        event: "call_end",
+        target_user_id: activeChatUserId
+      }));
+    }
+
+    if (peerConnection) {
+      peerConnection.close();
+      peerConnection = null;
+    }
+
+    if (localStream) {
+      localStream.getTracks().forEach(track => track.stop());
+      localStream = null;
+    }
+
+    const remoteAudio = document.getElementById("remoteAudio");
+    if (remoteAudio) {
+      remoteAudio.srcObject = null;
     }
   }
 </script>
