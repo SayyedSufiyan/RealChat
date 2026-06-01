@@ -801,430 +801,327 @@
 
 </div>
 
+
 <script>
-  const currentUserId = {{ request.user.id }};
-  const activeChatUserId = {% if selected_user %}{{ selected_user.id }}{% else %}null{% endif %};
+const currentUserId = {{ request.user.id }};
+const activeChatUserId = {% if selected_user %}{{ selected_user.id }}{% else %}null{% endif %};
 
-  let localStream = null;
-  let peerConnection = null;
+let localStream = null;
+let peerConnection = null;
+let incomingCallData = null;
+let activeCallUserId = null;
+let isMuted = false;
+let isSpeakerOn = true;
 
-  const rtcConfig = {
-    iceServers: [
-      { urls: "stun:stun.l.google.com:19302" }
-    ]
-  };
+const rtcConfig = {
+  iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+};
 
-  function escapeHtml(text) {
-    const div = document.createElement("div");
-    div.innerText = text || "";
-    return div.innerHTML;
+function escapeHtml(text){
+  const div = document.createElement("div");
+  div.innerText = text || "";
+  return div.innerHTML;
+}
+
+function showToast(message){
+  const toast = document.createElement("div");
+  toast.className = "toast";
+  toast.innerText = message;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
+function toggleMenu(){
+  const menu = document.getElementById("dropdownMenu");
+  menu.style.display = menu.style.display === "block" ? "none" : "block";
+}
+
+document.addEventListener("click", function(e){
+  const menu = document.getElementById("dropdownMenu");
+  const button = document.querySelector(".menu-button");
+
+  if(menu && button && !menu.contains(e.target) && !button.contains(e.target)){
+    menu.style.display = "none";
   }
+});
 
-  function toggleMenu() {
-    const menu = document.getElementById("dropdownMenu");
-    menu.style.display = menu.style.display === "block" ? "none" : "block";
-  }
+const searchInput = document.getElementById("user-search");
 
-  document.addEventListener("click", function (e) {
-    const menu = document.getElementById("dropdownMenu");
-    const button = document.querySelector(".menu-button");
-
-    if (menu && button && !menu.contains(e.target) && !button.contains(e.target)) {
-      menu.style.display = "none";
-    }
+if(searchInput){
+  searchInput.addEventListener("input", function(){
+    const query = this.value.toLowerCase();
+    document.querySelectorAll(".user-link").forEach(link => {
+      link.style.display = link.textContent.toLowerCase().includes(query) ? "flex" : "none";
+    });
   });
-
-  const searchInput = document.getElementById("user-search");
-
-  if (searchInput) {
-    searchInput.addEventListener("input", function () {
-      const query = this.value.toLowerCase();
-      const userLinks = document.querySelectorAll(".user-link");
-
-      userLinks.forEach(link => {
-        const name = link.textContent.toLowerCase();
-        link.style.display = name.includes(query) ? "flex" : "none";
-      });
-    });
-  }
-
-  function scrollToBottom() {
-    const chatLog = document.getElementById("chat-log");
-
-    if (chatLog) {
-      chatLog.scrollTop = chatLog.scrollHeight;
-    }
-  }
-
-  function showToast(message) {
-    const toast = document.createElement("div");
-    toast.className = "toast";
-    toast.innerText = message;
-
-    document.body.appendChild(toast);
-
-    setTimeout(() => {
-      toast.remove();
-    }, 3000);
-  }
-
-  function addFriendToSidebar(data) {
-    const userList = document.getElementById("user-list");
-
-    if (!userList) return;
-
-    if (!document.getElementById(`user-link-${data.friend_id}`)) {
-      const newUser = document.createElement("a");
-
-      newUser.href = `/chat/${data.friend_id}/`;
-      newUser.id = `user-link-${data.friend_id}`;
-      newUser.className = "user-link";
-
-      newUser.innerHTML = `
-        <img src="${escapeHtml(data.friend_picture)}" alt="Profile">
-        <span class="user-name">${escapeHtml(data.friend_username)}</span>
-        <span id="notify-${data.friend_id}" class="notification-badge" style="display:none;">0</span>
-      `;
-
-      userList.appendChild(newUser);
-    }
-  }
-
-  {% if selected_user %}
-
-  const socket = new WebSocket(
-    (window.location.protocol === "https:" ? "wss://" : "ws://") +
-    window.location.host +
-    "/ws/chat/" +
-    activeChatUserId +
-    "/"
-  );
-
-  socket.onmessage = function (e) {
-    const data = JSON.parse(e.data);
-
-    const isOwn = Number(data.sender_id) === Number(currentUserId);
-
-    const row = document.createElement("div");
-    row.className = "message-row " + (isOwn ? "sent" : "received");
-
-    row.innerHTML = `
-      <div>${escapeHtml(data.message)}</div>
-      <div class="meta">${escapeHtml(data.timestamp)}</div>
-    `;
-
-    const chatLog = document.getElementById("chat-log");
-
-    if (chatLog) {
-      chatLog.appendChild(row);
-      scrollToBottom();
-    }
-  };
-
-  const messageForm = document.getElementById("message-form");
-
-  if (messageForm) {
-    messageForm.addEventListener("submit", function (e) {
-      e.preventDefault();
-
-      const input = document.getElementById("msg-input");
-      const message = input.value.trim();
-
-      if (message && socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({
-          message: message,
-          receiver_id: activeChatUserId
-        }));
-
-        input.value = "";
-      }
-    });
-  }
-
-  scrollToBottom();
-
-  {% endif %}
-
-  const notificationSocket = new WebSocket(
-    (window.location.protocol === "https:" ? "wss://" : "ws://") +
-    window.location.host +
-    "/ws/notifications/"
-  );
-
-  notificationSocket.onmessage = function (e) {
-    const data = JSON.parse(e.data);
-
-    if (data.event === "call_offer") {
-      handleIncomingCall(data);
-      return;
-    }
-
-    if (data.event === "call_answer") {
-      handleCallAnswer(data);
-      return;
-    }
-
-    if (data.event === "ice_candidate") {
-      handleIceCandidate(data);
-      return;
-    }
-
-    if (data.event === "friend_accepted") {
-      addFriendToSidebar(data);
-      return;
-    }
-
-    const senderId = Number(data.sender_id);
-
-    if (senderId && senderId !== Number(activeChatUserId)) {
-      const userBadge = document.getElementById(`notify-${senderId}`);
-
-      if (userBadge) {
-        let count = parseInt(userBadge.innerText || "0");
-        userBadge.innerText = count + 1;
-        userBadge.style.display = "inline-block";
-      }
-
-      showToast(
-        data.sender_username
-          ? `💬 ${data.sender_username}: ${data.message}`
-          : "📩 New message received"
-      );
-    }
-
-    const bellBadge = document.querySelector(".notification-wrapper .badge");
-
-    if (bellBadge) {
-      let count = parseInt(bellBadge.innerText || "0");
-      bellBadge.innerText = count + 1;
-      bellBadge.style.display = "inline-block";
-    } else {
-      const bell = document.querySelector(".notification-wrapper");
-
-      if (bell) {
-        const span = document.createElement("span");
-        span.className = "badge";
-        span.innerText = "1";
-        bell.appendChild(span);
-      }
-    }
-  };
-
-  notificationSocket.onerror = function (e) {
-    console.error("Notification socket error:", e);
-  };
-
-  notificationSocket.onclose = function () {
-    console.log("Notification socket closed");
-  };
-
-  async function createPeerConnection(targetUserId) {
-    peerConnection = new RTCPeerConnection(rtcConfig);
-
-    peerConnection.ontrack = function (event) {
-      const remoteAudio = document.getElementById("remoteAudio");
-
-      if (remoteAudio) {
-        remoteAudio.srcObject = event.streams[0];
-      }
-    };
-
-    peerConnection.onicecandidate = function (event) {
-      if (event.candidate && targetUserId) {
-        notificationSocket.send(JSON.stringify({
-          event: "ice_candidate",
-          target_user_id: targetUserId,
-          candidate: event.candidate
-        }));
-      }
-    };
-
-    return peerConnection;
-  }
-
-  async function startAudioCall() {
-    if (!activeChatUserId) {
-      alert("Please select a user first");
-      return;
-    }
-
-    try {
-      localStream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-        video: false
-      });
-
-      await createPeerConnection(activeChatUserId);
-
-      localStream.getTracks().forEach(track => {
-        peerConnection.addTrack(track, localStream);
-      });
-
-      const offer = await peerConnection.createOffer();
-
-      await peerConnection.setLocalDescription(offer);
-
-      notificationSocket.send(JSON.stringify({
-        event: "call_offer",
-        target_user_id: activeChatUserId,
-        offer: offer
-      }));
-
-      showToast("Calling...");
-    } catch (error) {
-      console.error("Call start error:", error);
-      alert("Microphone permission denied or unavailable");
-    }
-  }
-
-  async function handleIncomingCall(data) {
-    const accept = confirm(`${data.sender_username} is calling. Accept?`);
-
-    if (!accept) return;
-
-    try {
-      localStream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-        video: false
-      });
-
-      await createPeerConnection(data.sender_id);
-
-      localStream.getTracks().forEach(track => {
-        peerConnection.addTrack(track, localStream);
-      });
-
-      await peerConnection.setRemoteDescription(
-        new RTCSessionDescription(data.offer)
-      );
-
-      const answer = await peerConnection.createAnswer();
-
-      await peerConnection.setLocalDescription(answer);
-
-      notificationSocket.send(JSON.stringify({
-        event: "call_answer",
-        target_user_id: data.sender_id,
-        answer: answer
-      }));
-
-      showToast("Call connected");
-    } catch (error) {
-      console.error("Incoming call error:", error);
-      alert("Could not accept call");
-    }
-  }
-
-  async function handleCallAnswer(data) {
-    try {
-      if (!peerConnection) return;
-
-      await peerConnection.setRemoteDescription(
-        new RTCSessionDescription(data.answer)
-      );
-
-      showToast("Call connected");
-    } catch (error) {
-      console.error("Call answer error:", error);
-    }
-  }
-
-  async function handleIceCandidate(data) {
-    try {
-      if (peerConnection && data.candidate) {
-        await peerConnection.addIceCandidate(
-          new RTCIceCandidate(data.candidate)
-        );
-      }
-    } catch (error) {
-      console.error("ICE candidate error:", error);
-    }
-  }
-
-
-  let incomingCallData = null;
+}
+
+function scrollToBottom(){
+  const chatLog = document.getElementById("chat-log");
+  if(chatLog) chatLog.scrollTop = chatLog.scrollHeight;
+}
 
 function showCallScreen(statusText){
-  document.getElementById("callScreen").style.display = "flex";
-  document.getElementById("callStatus").innerText = statusText;
+  const screen = document.getElementById("callScreen");
+  const status = document.getElementById("callStatus");
+
+  if(screen) screen.style.display = "flex";
+  if(status) status.innerText = statusText;
 }
 
 function hideCallScreen(){
-  document.getElementById("callScreen").style.display = "none";
+  const screen = document.getElementById("callScreen");
+  if(screen) screen.style.display = "none";
 }
 
 function showIncomingPopup(username){
-  document.getElementById("incomingCallPopup").style.display = "flex";
-  document.getElementById("callerName").innerText = username;
+  const popup = document.getElementById("incomingCallPopup");
+  const caller = document.getElementById("callerName");
+
+  if(popup) popup.style.display = "flex";
+  if(caller) caller.innerText = username || "Incoming Call";
 }
 
 function hideIncomingPopup(){
-  document.getElementById("incomingCallPopup").style.display = "none";
+  const popup = document.getElementById("incomingCallPopup");
+  if(popup) popup.style.display = "none";
+}
+
+function addFriendToSidebar(data){
+  const userList = document.getElementById("user-list");
+  if(!userList) return;
+
+  if(!document.getElementById(`user-link-${data.friend_id}`)){
+    const newUser = document.createElement("a");
+    newUser.href = `/chat/${data.friend_id}/`;
+    newUser.id = `user-link-${data.friend_id}`;
+    newUser.className = "user-link";
+
+    newUser.innerHTML = `
+      <img src="${escapeHtml(data.friend_picture)}" alt="Profile">
+      <span class="user-name">${escapeHtml(data.friend_username)}</span>
+      <span id="notify-${data.friend_id}" class="notification-badge" style="display:none;">0</span>
+    `;
+
+    userList.appendChild(newUser);
+  }
+}
+
+{% if selected_user %}
+const socket = new WebSocket(
+  (window.location.protocol === "https:" ? "wss://" : "ws://") +
+  window.location.host +
+  "/ws/chat/" +
+  activeChatUserId +
+  "/"
+);
+
+socket.onmessage = function(e){
+  const data = JSON.parse(e.data);
+  const isOwn = Number(data.sender_id) === Number(currentUserId);
+
+  const row = document.createElement("div");
+  row.className = "message-row " + (isOwn ? "sent" : "received");
+
+  row.innerHTML = `
+    <div>${escapeHtml(data.message)}</div>
+    <div class="meta">${escapeHtml(data.timestamp)}</div>
+  `;
+
+  const chatLog = document.getElementById("chat-log");
+
+  if(chatLog){
+    chatLog.appendChild(row);
+    scrollToBottom();
+  }
+};
+
+const messageForm = document.getElementById("message-form");
+
+if(messageForm){
+  messageForm.addEventListener("submit", function(e){
+    e.preventDefault();
+
+    const input = document.getElementById("msg-input");
+    const message = input.value.trim();
+
+    if(message && socket.readyState === WebSocket.OPEN){
+      socket.send(JSON.stringify({
+        message: message,
+        receiver_id: activeChatUserId
+      }));
+
+      input.value = "";
+    }
+  });
+}
+
+scrollToBottom();
+{% endif %}
+
+const notificationSocket = new WebSocket(
+  (window.location.protocol === "https:" ? "wss://" : "ws://") +
+  window.location.host +
+  "/ws/notifications/"
+);
+
+notificationSocket.onmessage = function(e){
+  const data = JSON.parse(e.data);
+
+  if(data.event === "call_offer"){
+    handleIncomingCall(data);
+    return;
+  }
+
+  if(data.event === "call_answer"){
+    handleCallAnswer(data);
+    return;
+  }
+
+  if(data.event === "ice_candidate"){
+    handleIceCandidate(data);
+    return;
+  }
+
+  if(data.event === "call_end"){
+    cleanupCall();
+    showToast("Call ended");
+    return;
+  }
+
+  if(data.event === "call_rejected"){
+    cleanupCall();
+    showToast("Call rejected");
+    return;
+  }
+
+  if(data.event === "friend_accepted"){
+    addFriendToSidebar(data);
+    return;
+  }
+
+  const senderId = Number(data.sender_id);
+
+  if(senderId && senderId !== Number(activeChatUserId)){
+    const userBadge = document.getElementById(`notify-${senderId}`);
+
+    if(userBadge){
+      let count = parseInt(userBadge.innerText || "0");
+      userBadge.innerText = count + 1;
+      userBadge.style.display = "inline-block";
+    }
+
+    showToast(
+      data.sender_username
+        ? `💬 ${data.sender_username}: ${data.message}`
+        : "📩 New message received"
+    );
+  }
+};
+
+notificationSocket.onerror = function(e){
+  console.error("Notification socket error:", e);
+};
+
+notificationSocket.onclose = function(){
+  console.log("Notification socket closed");
+};
+
+async function createPeerConnection(targetUserId){
+  peerConnection = new RTCPeerConnection(rtcConfig);
+
+  peerConnection.ontrack = function(event){
+    const remoteAudio = document.getElementById("remoteAudio");
+
+    if(remoteAudio){
+      remoteAudio.srcObject = event.streams[0];
+      remoteAudio.muted = false;
+      remoteAudio.play().catch(err => console.log("Remote audio play blocked:", err));
+    }
+  };
+
+  peerConnection.onicecandidate = function(event){
+    if(event.candidate && targetUserId && notificationSocket.readyState === WebSocket.OPEN){
+      notificationSocket.send(JSON.stringify({
+        event: "ice_candidate",
+        target_user_id: targetUserId,
+        candidate: event.candidate
+      }));
+    }
+  };
+
+  peerConnection.onconnectionstatechange = function(){
+    if(
+      peerConnection &&
+      ["disconnected", "failed", "closed"].includes(peerConnection.connectionState)
+    ){
+      cleanupCall(false);
+    }
+  };
+
+  return peerConnection;
 }
 
 async function startAudioCall(){
-
-  if (!activeChatUserId){
+  if(!activeChatUserId){
     alert("Select user first");
     return;
   }
 
+  activeCallUserId = activeChatUserId;
   showCallScreen("Calling...");
 
   try{
-
     localStream = await navigator.mediaDevices.getUserMedia({
-      audio:true,
-      video:false
+      audio: true,
+      video: false
     });
 
-    await createPeerConnection(activeChatUserId);
+    await createPeerConnection(activeCallUserId);
 
-    localStream.getTracks().forEach(track=>{
+    localStream.getTracks().forEach(track => {
       peerConnection.addTrack(track, localStream);
     });
 
     const offer = await peerConnection.createOffer();
-
     await peerConnection.setLocalDescription(offer);
 
     notificationSocket.send(JSON.stringify({
-      event:"call_offer",
-      target_user_id:activeChatUserId,
-      offer:offer
+      event: "call_offer",
+      target_user_id: activeCallUserId,
+      offer: offer
     }));
 
   }catch(error){
-    console.log(error);
-    alert("Microphone permission denied");
+    console.error("Call start error:", error);
+    cleanupCall(false);
+    alert("Microphone permission denied or unavailable");
   }
 }
 
 async function handleIncomingCall(data){
-
   incomingCallData = data;
-
+  activeCallUserId = data.sender_id;
   showIncomingPopup(data.sender_username);
 }
 
 async function acceptCall(){
-
   hideIncomingPopup();
 
   if(!incomingCallData) return;
 
+  activeCallUserId = incomingCallData.sender_id;
   showCallScreen("Connecting...");
 
   try{
-
     localStream = await navigator.mediaDevices.getUserMedia({
-      audio:true,
-      video:false
+      audio: true,
+      video: false
     });
 
-    await createPeerConnection(incomingCallData.sender_id);
+    await createPeerConnection(activeCallUserId);
 
-    localStream.getTracks().forEach(track=>{
+    localStream.getTracks().forEach(track => {
       peerConnection.addTrack(track, localStream);
     });
 
@@ -1233,43 +1130,75 @@ async function acceptCall(){
     );
 
     const answer = await peerConnection.createAnswer();
-
     await peerConnection.setLocalDescription(answer);
 
     notificationSocket.send(JSON.stringify({
-      event:"call_answer",
-      target_user_id:incomingCallData.sender_id,
-      answer:answer
+      event: "call_answer",
+      target_user_id: activeCallUserId,
+      answer: answer
     }));
 
     document.getElementById("callStatus").innerText = "Connected";
 
   }catch(error){
-    console.log(error);
+    console.error("Accept call error:", error);
+    cleanupCall();
+    alert("Could not accept call");
   }
 }
 
 function rejectCall(){
+  if(activeCallUserId && notificationSocket.readyState === WebSocket.OPEN){
+    notificationSocket.send(JSON.stringify({
+      event: "call_rejected",
+      target_user_id: activeCallUserId
+    }));
+  }
 
-  hideIncomingPopup();
-
-  incomingCallData = null;
+  cleanupCall(false);
 }
 
 async function handleCallAnswer(data){
+  try{
+    if(!peerConnection) return;
 
-  if(!peerConnection) return;
+    await peerConnection.setRemoteDescription(
+      new RTCSessionDescription(data.answer)
+    );
 
-  await peerConnection.setRemoteDescription(
-    new RTCSessionDescription(data.answer)
-  );
+    document.getElementById("callStatus").innerText = "Connected";
 
-  document.getElementById("callStatus").innerText = "Connected";
+  }catch(error){
+    console.error("Call answer error:", error);
+  }
+}
+
+async function handleIceCandidate(data){
+  try{
+    if(peerConnection && data.candidate){
+      await peerConnection.addIceCandidate(
+        new RTCIceCandidate(data.candidate)
+      );
+    }
+  }catch(error){
+    console.error("ICE candidate error:", error);
+  }
 }
 
 function endCall(){
+  if(activeCallUserId && notificationSocket.readyState === WebSocket.OPEN){
+    notificationSocket.send(JSON.stringify({
+      event: "call_end",
+      target_user_id: activeCallUserId
+    }));
+  }
 
+  cleanupCall(false);
+}
+
+function cleanupCall(){
   hideCallScreen();
+  hideIncomingPopup();
 
   if(peerConnection){
     peerConnection.close();
@@ -1277,12 +1206,76 @@ function endCall(){
   }
 
   if(localStream){
-    localStream.getTracks().forEach(track=>track.stop());
+    localStream.getTracks().forEach(track => track.stop());
+    localStream = null;
   }
 
-  localStream = null;
+  const remoteAudio = document.getElementById("remoteAudio");
+
+  if(remoteAudio){
+    remoteAudio.srcObject = null;
+  }
+
+  incomingCallData = null;
+  activeCallUserId = null;
+  isMuted = false;
+  isSpeakerOn = true;
+
+  resetCallButtons();
+}
+
+function toggleMute(){
+  if(!localStream) return;
+
+  const audioTrack = localStream.getAudioTracks()[0];
+  if(!audioTrack) return;
+
+  isMuted = !isMuted;
+  audioTrack.enabled = !isMuted;
+
+  const muteBtn = document.getElementById("muteBtn");
+
+  if(muteBtn){
+    muteBtn.innerHTML = isMuted
+      ? `<i class="fa-solid fa-microphone-slash"></i>`
+      : `<i class="fa-solid fa-microphone"></i>`;
+
+    muteBtn.classList.toggle("active-control", isMuted);
+  }
+}
+
+function toggleSpeaker(){
+  const remoteAudio = document.getElementById("remoteAudio");
+  if(!remoteAudio) return;
+
+  isSpeakerOn = !isSpeakerOn;
+  remoteAudio.muted = !isSpeakerOn;
+
+  const speakerBtn = document.getElementById("speakerBtn");
+
+  if(speakerBtn){
+    speakerBtn.innerHTML = isSpeakerOn
+      ? `<i class="fa-solid fa-volume-high"></i>`
+      : `<i class="fa-solid fa-volume-xmark"></i>`;
+
+    speakerBtn.classList.toggle("active-control", !isSpeakerOn);
+  }
+}
+
+function resetCallButtons(){
+  const muteBtn = document.getElementById("muteBtn");
+  const speakerBtn = document.getElementById("speakerBtn");
+
+  if(muteBtn){
+    muteBtn.innerHTML = `<i class="fa-solid fa-microphone"></i>`;
+    muteBtn.classList.remove("active-control");
+  }
+
+  if(speakerBtn){
+    speakerBtn.innerHTML = `<i class="fa-solid fa-volume-high"></i>`;
+    speakerBtn.classList.remove("active-control");
+  }
 }
 </script>
-
 </body>
 </html>
